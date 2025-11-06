@@ -4,7 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.parser.OpenAPIV3Parser
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.io.ClassPathResource
+import java.io.File
 
 /**
  * OpenAPI/Swagger Configuration
@@ -17,18 +17,17 @@ class OpenAPIConfig {
 
     @Bean
     fun customOpenAPI(): OpenAPI {
-        // docs/openapi.yml 파일 로드
-        val openApiYmlPath = "static/docs/openapi.yml"
+        val openApiYmlPath = "docs/openapi.yml"
 
         return try {
-            // ClassPath에서 openapi.yml 파일 읽기
-            val resource = ClassPathResource(openApiYmlPath)
+            val file = File(openApiYmlPath)
 
-            if (resource.exists()) {
+            if (file.exists()) {
                 // OpenAPI Parser로 yml 파일 파싱
-                val parseResult = OpenAPIV3Parser().read(resource.file.absolutePath)
+                val parseResult = OpenAPIV3Parser().read(file.absolutePath)
                 parseResult ?: createDefaultOpenAPI()
             } else {
+                println("Warning: OpenAPI spec file not found at: ${file.absolutePath}")
                 createDefaultOpenAPI()
             }
         } catch (e: Exception) {

@@ -51,6 +51,14 @@ dependencies {
 
 	// OpenAPI/Swagger
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+	implementation("io.swagger.parser.v3:swagger-parser:2.1.20")
+
+	// JAXB (Java 11+ 필수)
+	implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
+	implementation("org.glassfish.jaxb:jaxb-runtime:4.0.3")
+
+	// JAXB 구버전 (swagger-parser 호환용)
+	implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     // DB
 	runtimeOnly("com.mysql:mysql-connector-j")
