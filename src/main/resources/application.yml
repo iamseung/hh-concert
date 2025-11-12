@@ -21,6 +21,23 @@ spring:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
 
+# OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+  # Custom OpenAPI file location
+  # api-docs.path를 통해 자동 생성도 가능하지만,
+  # docs/openapi.yml을 직접 수정하여 사용하는 것을 권장
+  override-with-generic-response: false
+
 ---
 spring.config.activate.on-profile: local, test
 
