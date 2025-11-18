@@ -1,27 +1,25 @@
 package kr.hhplus.be.server.reservation.usecase
 
 import io.mockk.*
-import kr.hhplus.be.server.application.ReservationUseCase
+import kr.hhplus.be.server.application.ReservationFacade
 import kr.hhplus.be.server.common.exception.BusinessException
-import kr.hhplus.be.server.concert.domain.model.Seat
-import kr.hhplus.be.server.concert.domain.model.SeatStatus
-import kr.hhplus.be.server.concert.service.SeatService
-import kr.hhplus.be.server.queue.domain.model.QueueToken
-import kr.hhplus.be.server.queue.service.QueueTokenService
-import kr.hhplus.be.server.reservation.domain.model.Reservation
-import kr.hhplus.be.server.reservation.service.ReservationService
-import kr.hhplus.be.server.user.domain.model.User
-import kr.hhplus.be.server.user.service.UserService
+import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.concert.service.SeatService
+import kr.hhplus.be.server.domain.queue.model.QueueToken
+import kr.hhplus.be.server.domain.queue.service.QueueTokenService
+import kr.hhplus.be.server.domain.reservation.model.Reservation
+import kr.hhplus.be.server.domain.reservation.service.ReservationService
+import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 class ReservationUseCaseTest {
 
-    private lateinit var reservationUseCase: ReservationUseCase
+    private lateinit var reservationFacade: ReservationFacade
     private lateinit var userService: UserService
     private lateinit var seatService: SeatService
     private lateinit var reservationService: ReservationService
@@ -34,7 +32,7 @@ class ReservationUseCaseTest {
         reservationService = mockk()
         queueTokenService = mockk()
 
-        reservationUseCase = ReservationUseCase(
+        reservationFacade = ReservationFacade(
             userService = userService,
             seatService = seatService,
             reservationService = reservationService,
@@ -63,7 +61,7 @@ class ReservationUseCaseTest {
         every { reservationService.save(any()) } returns reservation
 
         // when
-        val result = reservationUseCase.createReservation(userId, scheduleId, seatId, queueToken)
+        val result = reservationFacade.createReservation(userId, scheduleId, seatId, queueToken)
 
         // then
         assertThat(result).isNotNull
@@ -91,7 +89,7 @@ class ReservationUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            reservationUseCase.createReservation(userId, scheduleId, seatId, queueToken)
+            reservationFacade.createReservation(userId, scheduleId, seatId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
@@ -119,7 +117,7 @@ class ReservationUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            reservationUseCase.createReservation(userId, scheduleId, seatId, queueToken)
+            reservationFacade.createReservation(userId, scheduleId, seatId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
@@ -140,7 +138,7 @@ class ReservationUseCaseTest {
         every { reservationService.findAllByUserId(userId) } returns reservations
 
         // when
-        val result = reservationUseCase.getConcertReservations(userId)
+        val result = reservationFacade.getConcertReservations(userId)
 
         // then
         assertThat(result).isNotNull

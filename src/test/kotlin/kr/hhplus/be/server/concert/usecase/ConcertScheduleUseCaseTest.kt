@@ -1,13 +1,13 @@
 package kr.hhplus.be.server.concert.usecase
 
 import io.mockk.*
-import kr.hhplus.be.server.application.ConcertScheduleUseCase
-import kr.hhplus.be.server.concert.domain.model.Concert
-import kr.hhplus.be.server.concert.domain.model.ConcertSchedule
-import kr.hhplus.be.server.concert.domain.model.Seat
-import kr.hhplus.be.server.concert.service.ConcertScheduleService
-import kr.hhplus.be.server.concert.service.ConcertService
-import kr.hhplus.be.server.concert.service.SeatService
+import kr.hhplus.be.server.application.ConcertScheduleFacade
+import kr.hhplus.be.server.domain.concert.model.Concert
+import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
+import kr.hhplus.be.server.domain.concert.service.ConcertService
+import kr.hhplus.be.server.domain.concert.service.SeatService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 class ConcertScheduleUseCaseTest {
 
-    private lateinit var concertScheduleUseCase: ConcertScheduleUseCase
+    private lateinit var concertScheduleFacade: ConcertScheduleFacade
     private lateinit var concertService: ConcertService
     private lateinit var concertScheduleService: ConcertScheduleService
     private lateinit var seatService: SeatService
@@ -27,7 +27,7 @@ class ConcertScheduleUseCaseTest {
         concertScheduleService = mockk()
         seatService = mockk()
 
-        concertScheduleUseCase = ConcertScheduleUseCase(
+        concertScheduleFacade = ConcertScheduleFacade(
             concertService = concertService,
             concertScheduleService = concertScheduleService,
             seatService = seatService,
@@ -50,7 +50,7 @@ class ConcertScheduleUseCaseTest {
         every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
-        val result = concertScheduleUseCase.getAvailableSchedules(concertId)
+        val result = concertScheduleFacade.getAvailableSchedules(concertId)
 
         // then
         assertThat(result).hasSize(2)
@@ -74,7 +74,7 @@ class ConcertScheduleUseCaseTest {
         every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
-        val result = concertScheduleUseCase.getAvailableSchedules(concertId)
+        val result = concertScheduleFacade.getAvailableSchedules(concertId)
 
         // then
         assertThat(result).hasSize(1)
@@ -98,7 +98,7 @@ class ConcertScheduleUseCaseTest {
         every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
-        val result = concertScheduleUseCase.getAvailableSchedules(concertId)
+        val result = concertScheduleFacade.getAvailableSchedules(concertId)
 
         // then
         assertThat(result).isEmpty()
@@ -125,7 +125,7 @@ class ConcertScheduleUseCaseTest {
         every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
 
         // when
-        val result = concertScheduleUseCase.getAvailableSeats(concertId, scheduleId)
+        val result = concertScheduleFacade.getAvailableSeats(concertId, scheduleId)
 
         // then
         assertThat(result).hasSize(2)
@@ -154,7 +154,7 @@ class ConcertScheduleUseCaseTest {
         every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
 
         // when
-        val result = concertScheduleUseCase.getAvailableSeats(concertId, scheduleId)
+        val result = concertScheduleFacade.getAvailableSeats(concertId, scheduleId)
 
         // then
         assertThat(result).hasSize(1)
@@ -181,7 +181,7 @@ class ConcertScheduleUseCaseTest {
         every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
 
         // when
-        val result = concertScheduleUseCase.getAvailableSeats(concertId, scheduleId)
+        val result = concertScheduleFacade.getAvailableSeats(concertId, scheduleId)
 
         // then
         assertThat(result).isEmpty()

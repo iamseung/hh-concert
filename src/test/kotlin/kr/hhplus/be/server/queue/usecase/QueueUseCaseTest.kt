@@ -1,15 +1,15 @@
 package kr.hhplus.be.server.queue.usecase
 
 import io.mockk.*
-import kr.hhplus.be.server.application.QueueUseCase
+import kr.hhplus.be.server.application.QueueFacade
 import kr.hhplus.be.server.common.exception.AuthenticationException
 import kr.hhplus.be.server.common.exception.AuthorizationException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.queue.domain.model.QueueStatus
-import kr.hhplus.be.server.queue.domain.model.QueueToken
-import kr.hhplus.be.server.queue.service.QueueTokenService
-import kr.hhplus.be.server.user.domain.model.User
-import kr.hhplus.be.server.user.service.UserService
+import kr.hhplus.be.server.domain.queue.model.QueueStatus
+import kr.hhplus.be.server.domain.queue.model.QueueToken
+import kr.hhplus.be.server.domain.queue.service.QueueTokenService
+import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 
 class QueueUseCaseTest {
 
-    private lateinit var queueUseCase: QueueUseCase
+    private lateinit var queueFacade: QueueFacade
     private lateinit var userService: UserService
     private lateinit var queueTokenService: QueueTokenService
 
@@ -27,7 +27,7 @@ class QueueUseCaseTest {
         userService = mockk()
         queueTokenService = mockk()
 
-        queueUseCase = QueueUseCase(
+        queueFacade = QueueFacade(
             userService = userService,
             queueTokenService = queueTokenService,
         )
@@ -45,7 +45,7 @@ class QueueUseCaseTest {
         every { queueTokenService.createQueueToken(userId) } returns queueToken
 
         // when
-        val result = queueUseCase.issueQueueToken(userId)
+        val result = queueFacade.issueQueueToken(userId)
 
         // then
         assertThat(result).isNotNull
@@ -66,7 +66,7 @@ class QueueUseCaseTest {
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
 
         // when
-        val result = queueUseCase.getQueueStatus(token)
+        val result = queueFacade.getQueueStatus(token)
 
         // then
         assertThat(result).isNotNull
@@ -89,7 +89,7 @@ class QueueUseCaseTest {
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
 
         // when
-        val result = queueUseCase.getQueueStatus(token)
+        val result = queueFacade.getQueueStatus(token)
 
         // then
         assertThat(result).isNotNull
@@ -110,7 +110,7 @@ class QueueUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            queueUseCase.getQueueStatus(token)
+            queueFacade.getQueueStatus(token)
         }
             .isInstanceOf(AuthenticationException::class.java)
             .hasMessage(ErrorCode.INVALID_TOKEN.message)
@@ -129,7 +129,7 @@ class QueueUseCaseTest {
         every { queueToken.validateActive() } just Runs
 
         // when & then
-        queueUseCase.validateQueueToken(token)
+        queueFacade.validateQueueToken(token)
 
         verify(exactly = 1) { queueTokenService.getQueueTokenByToken(token) }
         verify(exactly = 1) { queueToken.validateActive() }
@@ -147,7 +147,7 @@ class QueueUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            queueUseCase.validateQueueToken(token)
+            queueFacade.validateQueueToken(token)
         }
             .isInstanceOf(AuthorizationException::class.java)
             .hasMessage(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE.message)
@@ -168,7 +168,7 @@ class QueueUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            queueUseCase.validateQueueToken(token)
+            queueFacade.validateQueueToken(token)
         }
             .isInstanceOf(AuthorizationException::class.java)
             .hasMessage(ErrorCode.TOKEN_EXPIRED.message)
@@ -187,7 +187,7 @@ class QueueUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            queueUseCase.validateQueueToken(token)
+            queueFacade.validateQueueToken(token)
         }
             .isInstanceOf(AuthenticationException::class.java)
             .hasMessage(ErrorCode.INVALID_TOKEN.message)

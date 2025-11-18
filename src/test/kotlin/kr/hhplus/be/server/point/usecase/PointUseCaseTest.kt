@@ -1,15 +1,14 @@
 package kr.hhplus.be.server.point.usecase
 
 import io.mockk.*
-import kr.hhplus.be.server.application.PointUseCase
+import kr.hhplus.be.server.application.PointFacade
 import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.payment.entity.TransactionType
-import kr.hhplus.be.server.point.domain.model.Point
-import kr.hhplus.be.server.point.service.PointHistoryService
-import kr.hhplus.be.server.point.service.PointService
-import kr.hhplus.be.server.user.domain.model.User
-import kr.hhplus.be.server.user.service.UserService
+import kr.hhplus.be.server.domain.point.model.Point
+import kr.hhplus.be.server.domain.point.service.PointHistoryService
+import kr.hhplus.be.server.domain.point.service.PointService
+import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +17,7 @@ import org.junit.jupiter.api.Test
 
 class PointUseCaseTest {
 
-    private lateinit var pointUseCase: PointUseCase
+    private lateinit var pointFacade: PointFacade
     private lateinit var userService: UserService
     private lateinit var pointService: PointService
     private lateinit var pointHistoryService: PointHistoryService
@@ -29,7 +28,7 @@ class PointUseCaseTest {
         pointService = mockk()
         pointHistoryService = mockk()
 
-        pointUseCase = PointUseCase(
+        pointFacade = PointFacade(
             userService = userService,
             pointService = pointService,
             pointHistoryService = pointHistoryService,
@@ -48,7 +47,7 @@ class PointUseCaseTest {
         every { pointService.getPointByUserId(userId) } returns point
 
         // when
-        val result = pointUseCase.getPoints(userId)
+        val result = pointFacade.getPoints(userId)
 
         // then
         assertThat(result).isNotNull
@@ -71,7 +70,7 @@ class PointUseCaseTest {
         every { pointHistoryService.savePointHistory(userId, amount, TransactionType.CHARGE) } just Runs
 
         // when
-        val result = pointUseCase.chargePoint(userId, amount)
+        val result = pointFacade.chargePoint(userId, amount)
 
         // then
         assertThat(result).isNotNull
@@ -94,7 +93,7 @@ class PointUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            pointUseCase.chargePoint(userId, amount)
+            pointFacade.chargePoint(userId, amount)
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_CHARGE_AMOUNT)
 
@@ -116,7 +115,7 @@ class PointUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            pointUseCase.chargePoint(userId, amount)
+            pointFacade.chargePoint(userId, amount)
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_CHARGE_AMOUNT)
 

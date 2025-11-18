@@ -1,19 +1,19 @@
 package kr.hhplus.be.server.payment.usecase
 
 import io.mockk.*
-import kr.hhplus.be.server.application.PaymentUseCase
+import kr.hhplus.be.server.application.PaymentFacade
 import kr.hhplus.be.server.common.exception.BusinessException
-import kr.hhplus.be.server.concert.service.SeatService
-import kr.hhplus.be.server.payment.domain.model.Payment
-import kr.hhplus.be.server.payment.entity.TransactionType
-import kr.hhplus.be.server.payment.service.PaymentService
-import kr.hhplus.be.server.point.service.PointHistoryService
-import kr.hhplus.be.server.point.service.PointService
-import kr.hhplus.be.server.queue.service.QueueTokenService
-import kr.hhplus.be.server.reservation.domain.model.Reservation
-import kr.hhplus.be.server.reservation.service.ReservationService
-import kr.hhplus.be.server.user.domain.model.User
-import kr.hhplus.be.server.user.service.UserService
+import kr.hhplus.be.server.domain.concert.service.SeatService
+import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.payment.model.Payment
+import kr.hhplus.be.server.domain.payment.service.PaymentService
+import kr.hhplus.be.server.domain.point.service.PointHistoryService
+import kr.hhplus.be.server.domain.point.service.PointService
+import kr.hhplus.be.server.domain.queue.service.QueueTokenService
+import kr.hhplus.be.server.domain.reservation.model.Reservation
+import kr.hhplus.be.server.domain.reservation.service.ReservationService
+import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test
 
 class PaymentUseCaseTest {
 
-    private lateinit var paymentUseCase: PaymentUseCase
+    private lateinit var paymentFacade: PaymentFacade
     private lateinit var userService: UserService
     private lateinit var reservationService: ReservationService
     private lateinit var seatService: SeatService
@@ -41,7 +41,7 @@ class PaymentUseCaseTest {
         paymentService = mockk()
         queueTokenService = mockk()
 
-        paymentUseCase = PaymentUseCase(
+        paymentFacade = PaymentFacade(
             userService = userService,
             reservationService = reservationService,
             seatService = seatService,
@@ -63,7 +63,7 @@ class PaymentUseCaseTest {
 
         val user = User.create("testUser", "test@test.com", "password")
         val reservation = spyk(Reservation.create(userId, seatId))
-        val seat = spyk(kr.hhplus.be.server.concert.domain.model.Seat.create(1L, 1, seatPrice))
+        val seat = spyk(Seat.create(1L, 1, seatPrice))
         val payment = Payment.create(reservationId, userId, seatPrice)
         val queueToken = "test-queue-token"
 
@@ -82,7 +82,7 @@ class PaymentUseCaseTest {
         every { queueTokenService.expireQueueToken(any()) } returns mockk(relaxed = true)
 
         // when
-        val result = paymentUseCase.processPayment(userId, reservationId, queueToken)
+        val result = paymentFacade.processPayment(userId, reservationId, queueToken)
 
         // then
         assertThat(result).isNotNull
@@ -106,7 +106,7 @@ class PaymentUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            paymentUseCase.processPayment(userId, reservationId, queueToken)
+            paymentFacade.processPayment(userId, reservationId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
@@ -131,7 +131,7 @@ class PaymentUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            paymentUseCase.processPayment(userId, reservationId, queueToken)
+            paymentFacade.processPayment(userId, reservationId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
@@ -151,7 +151,7 @@ class PaymentUseCaseTest {
 
         val user = User.create("testUser", "test@test.com", "password")
         val reservation = spyk(Reservation.create(userId, seatId))
-        val seat = spyk(kr.hhplus.be.server.concert.domain.model.Seat.create(1L, 1, seatPrice))
+        val seat = spyk(Seat.create(1L, 1, seatPrice))
 
         every { userService.getUser(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
@@ -163,7 +163,7 @@ class PaymentUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            paymentUseCase.processPayment(userId, reservationId, queueToken)
+            paymentFacade.processPayment(userId, reservationId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
