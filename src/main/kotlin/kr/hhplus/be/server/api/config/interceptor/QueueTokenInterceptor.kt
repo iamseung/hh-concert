@@ -2,9 +2,9 @@ package kr.hhplus.be.server.api.config.interceptor
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import kr.hhplus.be.server.application.QueueFacade
 import kr.hhplus.be.server.common.exception.AuthenticationException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.application.QueueFacade
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 

@@ -18,13 +18,21 @@ class QueueTokenRepositoryImpl(
 ) : QueueTokenRepository {
 
     override fun save(queueToken: QueueToken): QueueToken {
-        val entity = toEntity(queueToken)
+        val entity = if (queueToken.id != 0L) {
+            queueTokenJpaRepository.findByIdOrNull(queueToken.id)?.apply {
+                updateFromDomain(queueToken)
+            } ?: throw BusinessException(ErrorCode.QUEUE_TOKEN_NOT_FOUND)
+        } else {
+            val user = userJpaRepository.findByIdOrNull(queueToken.userId)
+                ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+            QueueTokenEntity.fromDomain(queueToken, user)
+        }
         val saved = queueTokenJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): QueueToken? {
-        return queueTokenJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return queueTokenJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): QueueToken {
@@ -32,7 +40,7 @@ class QueueTokenRepositoryImpl(
     }
 
     override fun findByToken(token: String): QueueToken? {
-        return queueTokenJpaRepository.findByToken(token)?.let { toDomain(it) }
+        return queueTokenJpaRepository.findByToken(token)?.toDomain()
     }
 
     override fun findByTokenOrThrow(token: String): QueueToken {
@@ -40,11 +48,11 @@ class QueueTokenRepositoryImpl(
     }
 
     override fun findAllByStatus(status: QueueStatus): List<QueueToken> {
-        return queueTokenJpaRepository.findAllByQueueStatusOrderByCreatedAtAsc(status).map { toDomain(it) }
+        return queueTokenJpaRepository.findAllByQueueStatusOrderByCreatedAtAsc(status).map { it.toDomain() }
     }
 
     override fun findTopWaitingTokens(limit: Int): List<QueueToken> {
-        return queueTokenJpaRepository.findTopWaitingTokens(limit).map { toDomain(it) }
+        return queueTokenJpaRepository.findTopWaitingTokens(limit).map { it.toDomain() }
     }
 
     override fun countByStatus(status: QueueStatus): Long {
@@ -52,31 +60,6 @@ class QueueTokenRepositoryImpl(
     }
 
     override fun findExpiredTokens(): List<QueueToken> {
-        return queueTokenJpaRepository.findExpiredTokens(LocalDateTime.now()).map { toDomain(it) }
-    }
-
-    private fun toDomain(queueToken: QueueTokenEntity): QueueToken {
-        return QueueToken.reconstitute(
-            id = queueToken.id,
-            userId = queueToken.userEntity.id,
-            token = queueToken.token,
-            queueStatus = queueToken.queueStatus,
-            queuePosition = queueToken.queuePosition,
-            activatedAt = queueToken.activatedAt,
-            expiresAt = queueToken.expiresAt,
-            createdAt = queueToken.createdAt,
-            updatedAt = queueToken.updatedAt,
-        )
-    }
-
-    private fun toEntity(queueToken: QueueToken): QueueTokenEntity {
-        val user = userJpaRepository.findByIdOrNull(queueToken.userId)
-            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
-
-        val entity = QueueTokenEntity.of(user, queueToken.queuePosition)
-        entity.queueStatus = queueToken.queueStatus
-        queueToken.activatedAt?.let { entity.activatedAt = it }
-        queueToken.expiresAt?.let { entity.expiresAt = it }
-        return entity
+        return queueTokenJpaRepository.findExpiredTokens(LocalDateTime.now()).map { it.toDomain() }
     }
 }

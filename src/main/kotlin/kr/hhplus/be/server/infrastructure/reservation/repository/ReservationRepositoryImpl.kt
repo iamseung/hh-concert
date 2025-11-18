@@ -20,13 +20,23 @@ class ReservationRepositoryImpl(
 ) : ReservationRepository {
 
     override fun save(reservation: Reservation): Reservation {
-        val entity = toEntity(reservation)
+        val entity = if (reservation.id != 0L) {
+            reservationJpaRepository.findByIdOrNull(reservation.id)?.apply {
+                updateFromDomain(reservation)
+            } ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
+        } else {
+            val user = userJpaRepository.findByIdOrNull(reservation.userId)
+                ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+            val seat = seatJpaRepository.findByIdOrNull(reservation.seatId)
+                ?: throw BusinessException(ErrorCode.SEAT_NOT_FOUND)
+            ReservationEntity.fromDomain(reservation, user, seat)
+        }
         val saved = reservationJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): Reservation? {
-        return reservationJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return reservationJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): Reservation {
@@ -34,42 +44,18 @@ class ReservationRepositoryImpl(
     }
 
     override fun findByUserIdAndSeatId(userId: Long, seatId: Long): Reservation? {
-        return reservationJpaRepository.findByUserIdAndSeatId(userId, seatId)?.let { toDomain(it) }
+        return reservationJpaRepository.findByUserIdAndSeatId(userId, seatId)?.toDomain()
     }
 
     override fun findAllByUserId(userId: Long): List<Reservation> {
-        return reservationJpaRepository.findAllByUserId(userId).map { toDomain(it) }
+        return reservationJpaRepository.findAllByUserId(userId).map { it.toDomain() }
     }
 
     override fun findAllByStatus(status: ReservationStatus): List<Reservation> {
-        return reservationJpaRepository.findAllByReservationStatus(status).map { toDomain(it) }
+        return reservationJpaRepository.findAllByReservationStatus(status).map { it.toDomain() }
     }
 
     override fun findExpiredReservations(): List<Reservation> {
-        return reservationJpaRepository.findExpiredReservations(LocalDateTime.now()).map { toDomain(it) }
-    }
-
-    private fun toDomain(reservation: ReservationEntity): Reservation {
-        return Reservation.reconstitute(
-            id = reservation.id,
-            userId = reservation.userEntity.id,
-            seatId = reservation.seatEntity.id,
-            reservationStatus = reservation.reservationStatus,
-            temporaryReservedAt = reservation.temporaryReservedAt,
-            temporaryExpiredAt = reservation.temporaryExpiredAt,
-            createdAt = reservation.createdAt,
-            updatedAt = reservation.updatedAt,
-        )
-    }
-
-    private fun toEntity(reservation: Reservation): ReservationEntity {
-        val user = userJpaRepository.findByIdOrNull(reservation.userId)
-            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
-        val seat = seatJpaRepository.findByIdOrNull(reservation.seatId)
-            ?: throw BusinessException(ErrorCode.SEAT_NOT_FOUND)
-
-        val entity = ReservationEntity.of(user, seat)
-        entity.reservationStatus = reservation.reservationStatus
-        return entity
+        return reservationJpaRepository.findExpiredReservations(LocalDateTime.now()).map { it.toDomain() }
     }
 }

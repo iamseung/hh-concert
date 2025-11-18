@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ConcertSchedule private constructor(
-    private var id: Long?,
+    var id: Long,
     val concertId: Long,
     val concertDate: LocalDate,
     val createdAt: LocalDateTime,
@@ -22,17 +22,17 @@ class ConcertSchedule private constructor(
         }
     }
 
-    fun assignId(id: Long) {
-        this.id = id
+    fun validateIsConcert(concert: Concert) {
+        if (this.concertId != concert.id) {
+            throw BusinessException(ErrorCode.RESOURCE_NOT_FOUND)
+        }
     }
-
-    fun getId(): Long? = id
 
     companion object {
         fun create(concertId: Long, concertDate: LocalDate): ConcertSchedule {
             val now = LocalDateTime.now()
             return ConcertSchedule(
-                id = null,
+                id = 0L,
                 concertId = concertId,
                 concertDate = concertDate,
                 createdAt = now,

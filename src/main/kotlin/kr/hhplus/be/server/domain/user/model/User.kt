@@ -11,10 +11,6 @@ class User private constructor(
     var updatedAt: LocalDateTime,
 ) {
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
     companion object {
         fun create(userName: String, email: String, password: String): User {
             val now = LocalDateTime.now()

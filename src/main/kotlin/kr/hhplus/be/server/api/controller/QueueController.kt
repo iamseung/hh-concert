@@ -9,11 +9,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.QueueFacade
-import kr.hhplus.be.server.common.dto.ErrorResponse
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
 import kr.hhplus.be.server.api.dto.response.QueueStatusResponse
 import kr.hhplus.be.server.api.dto.response.QueueTokenResponse
+import kr.hhplus.be.server.application.QueueFacade
+import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping

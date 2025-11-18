@@ -16,13 +16,21 @@ class ConcertScheduleRepositoryImpl(
 ) : ConcertScheduleRepository {
 
     override fun save(concertSchedule: ConcertSchedule): ConcertSchedule {
-        val entity = toEntity(concertSchedule)
+        val entity = if (concertSchedule.id != 0L) {
+            concertScheduleJpaRepository.findByIdOrNull(concertSchedule.id)?.apply {
+                updateFromDomain(concertSchedule)
+            } ?: throw BusinessException(ErrorCode.CONCERT_SCHEDULE_NOT_FOUND)
+        } else {
+            val concert = concertJpaRepository.findByIdOrNull(concertSchedule.concertId)
+                ?: throw BusinessException(ErrorCode.CONCERT_NOT_FOUND)
+            ConcertScheduleEntity.fromDomain(concertSchedule, concert)
+        }
         val saved = concertScheduleJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): ConcertSchedule? {
-        return concertScheduleJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return concertScheduleJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): ConcertSchedule {
@@ -30,32 +38,10 @@ class ConcertScheduleRepositoryImpl(
     }
 
     override fun findAllByConcertId(concertId: Long): List<ConcertSchedule> {
-        return concertScheduleJpaRepository.findByConcertId(concertId).map { toDomain(it) }
+        return concertScheduleJpaRepository.findByConcertId(concertId).map { it.toDomain() }
     }
 
     override fun findAvailableSchedules(concertId: Long, fromDate: LocalDate): List<ConcertSchedule> {
-        return concertScheduleJpaRepository.findAvailableSchedules(concertId, fromDate).map { toDomain(it) }
-    }
-
-    private fun toDomain(concertSchedule: ConcertScheduleEntity): ConcertSchedule {
-        return ConcertSchedule.reconstitute(
-            id = concertSchedule.id,
-            concertId = concertSchedule.concertEntity.id,
-            concertDate = concertSchedule.concertDate,
-            createdAt = concertSchedule.createdAt,
-            updatedAt = concertSchedule.updatedAt,
-        )
-    }
-
-    private fun toEntity(concertSchedule: ConcertSchedule): ConcertScheduleEntity {
-        val concert = concertJpaRepository.findByIdOrNull(concertSchedule.concertId)
-            ?: throw BusinessException(ErrorCode.CONCERT_NOT_FOUND)
-
-        val entity = ConcertScheduleEntity(
-            concertEntity = concert,
-            concertDate = concertSchedule.concertDate,
-        )
-        concertSchedule.getId()?.let { entity.id = it }
-        return entity
+        return concertScheduleJpaRepository.findAvailableSchedules(concertId, fromDate).map { it.toDomain() }
     }
 }

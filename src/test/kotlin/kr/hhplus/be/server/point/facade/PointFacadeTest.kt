@@ -1,10 +1,11 @@
-package kr.hhplus.be.server.point.usecase
+package kr.hhplus.be.server.point.facade
 
 import io.mockk.*
 import kr.hhplus.be.server.application.PointFacade
 import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.point.model.Point
+import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.user.model.User
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-class PointUseCaseTest {
+class PointFacadeTest {
 
     private lateinit var pointFacade: PointFacade
     private lateinit var userService: UserService
@@ -43,7 +44,7 @@ class PointUseCaseTest {
         val user = User.create("testUser", "test@test.com", "password")
         val point = Point.create(userId, 50000)
 
-        every { userService.getUser(userId) } returns user
+        every { userService.findById(userId) } returns user
         every { pointService.getPointByUserId(userId) } returns point
 
         // when
@@ -52,7 +53,7 @@ class PointUseCaseTest {
         // then
         assertThat(result).isNotNull
         assertThat(result.balance).isEqualTo(50000)
-        verify(exactly = 1) { userService.getUser(userId) }
+        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { pointService.getPointByUserId(userId) }
     }
 
@@ -65,9 +66,9 @@ class PointUseCaseTest {
         val user = User.create("testUser", "test@test.com", "password")
         val chargedPoint = Point.create(userId, 60000)
 
-        every { userService.getUser(userId) } returns user
+        every { userService.findById(userId) } returns user
         every { pointService.chargePoint(userId, amount) } returns chargedPoint
-        every { pointHistoryService.savePointHistory(userId, amount, TransactionType.CHARGE) } just Runs
+        every { pointHistoryService.savePointHistory(user, amount, TransactionType.CHARGE) } just Runs
 
         // when
         val result = pointFacade.chargePoint(userId, amount)
@@ -75,9 +76,9 @@ class PointUseCaseTest {
         // then
         assertThat(result).isNotNull
         assertThat(result.balance).isEqualTo(60000)
-        verify(exactly = 1) { userService.getUser(userId) }
+        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { pointService.chargePoint(userId, amount) }
-        verify(exactly = 1) { pointHistoryService.savePointHistory(userId, amount, TransactionType.CHARGE) }
+        verify(exactly = 1) { pointHistoryService.savePointHistory(user, amount, TransactionType.CHARGE) }
     }
 
     @Test
@@ -88,7 +89,7 @@ class PointUseCaseTest {
         val amount = -1000
         val user = User.create("testUser", "test@test.com", "password")
 
-        every { userService.getUser(userId) } returns user
+        every { userService.findById(userId) } returns user
         every { pointService.chargePoint(userId, amount) } throws BusinessException(ErrorCode.INVALID_CHARGE_AMOUNT)
 
         // when & then
@@ -97,7 +98,7 @@ class PointUseCaseTest {
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_CHARGE_AMOUNT)
 
-        verify(exactly = 1) { userService.getUser(userId) }
+        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { pointService.chargePoint(userId, amount) }
         verify(exactly = 0) { pointHistoryService.savePointHistory(any(), any(), any()) }
     }
@@ -110,7 +111,7 @@ class PointUseCaseTest {
         val amount = 0
         val user = User.create("testUser", "test@test.com", "password")
 
-        every { userService.getUser(userId) } returns user
+        every { userService.findById(userId) } returns user
         every { pointService.chargePoint(userId, amount) } throws BusinessException(ErrorCode.INVALID_CHARGE_AMOUNT)
 
         // when & then
@@ -119,7 +120,7 @@ class PointUseCaseTest {
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_CHARGE_AMOUNT)
 
-        verify(exactly = 1) { userService.getUser(userId) }
+        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { pointService.chargePoint(userId, amount) }
         verify(exactly = 0) { pointHistoryService.savePointHistory(any(), any(), any()) }
     }

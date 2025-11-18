@@ -16,13 +16,21 @@ class PointRepositoryImpl(
 ) : PointRepository {
 
     override fun save(point: Point): Point {
-        val entity = toEntity(point)
+        val entity = if (point.id != 0L) {
+            pointJpaRepository.findByIdOrNull(point.id)?.apply {
+                updateFromDomain(point)
+            } ?: throw BusinessException(ErrorCode.POINT_NOT_FOUND)
+        } else {
+            val user = userJpaRepository.findByIdOrNull(point.userId)
+                ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+            PointEntity.fromDomain(point, user)
+        }
         val saved = pointJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): Point? {
-        return pointJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return pointJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): Point {
@@ -30,7 +38,7 @@ class PointRepositoryImpl(
     }
 
     override fun findByUserId(userId: Long): Point? {
-        return pointJpaRepository.findByUserId(userId)?.let { toDomain(it) }
+        return pointJpaRepository.findByUserId(userId)?.toDomain()
     }
 
     override fun findByUserIdOrThrow(userId: Long): Point {
@@ -38,28 +46,6 @@ class PointRepositoryImpl(
     }
 
     override fun findByUserIdWithLock(userId: Long): Point? {
-        return pointJpaRepository.findByUserIdWithLock(userId)?.let { toDomain(it) }
-    }
-
-    private fun toDomain(point: PointEntity): Point {
-        return Point.reconstitute(
-            id = point.id,
-            userId = point.userEntity.id,
-            balance = point.balance,
-            createdAt = point.createdAt,
-            updatedAt = point.updatedAt,
-        )
-    }
-
-    private fun toEntity(point: Point): PointEntity {
-        val user = userJpaRepository.findByIdOrNull(point.userId)
-            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
-
-        val entity = PointEntity(
-            userEntity = user,
-            balance = point.balance,
-        )
-
-        return entity
+        return pointJpaRepository.findByUserIdWithLock(userId)?.toDomain()
     }
 }

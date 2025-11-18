@@ -4,9 +4,8 @@ import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
+import kr.hhplus.be.server.domain.point.model.Point
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
-import kr.hhplus.be.server.common.exception.BusinessException
-import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 
 @Entity
@@ -20,29 +19,29 @@ class PointEntity(
     var balance: Int,
 ) : BaseEntity() {
 
-    fun chargePoint(amount: Int): PointEntity {
-        validatePositiveAmount(amount)
-        this.balance += amount
-        return this
+    fun toDomain(): Point {
+        return Point.reconstitute(
+            id = id,
+            userId = userEntity.id,
+            balance = balance,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+        )
     }
 
-    fun usePoint(amount: Int): PointEntity {
-        validatePositiveAmount(amount)
-        validateSufficientPoint(amount)
-
-        this.balance -= amount
-        return this
+    fun updateFromDomain(point: Point) {
+        this.balance = point.balance
     }
 
-    private fun validatePositiveAmount(amount: Int) {
-        if (amount <= 0) {
-            throw BusinessException(ErrorCode.INVALID_CHARGE_AMOUNT)
-        }
-    }
-
-    private fun validateSufficientPoint(amount: Int) {
-        if (balance < amount) {
-            throw BusinessException(ErrorCode.INSUFFICIENT_POINTS)
+    companion object {
+        fun fromDomain(
+            point: Point,
+            userEntity: UserEntity,
+        ): PointEntity {
+            return PointEntity(
+                userEntity = userEntity,
+                balance = point.balance,
+            )
         }
     }
 }

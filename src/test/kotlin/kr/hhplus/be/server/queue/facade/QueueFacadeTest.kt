@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.queue.usecase
+package kr.hhplus.be.server.queue.facade
 
 import io.mockk.*
 import kr.hhplus.be.server.application.QueueFacade
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-class QueueUseCaseTest {
+class QueueFacadeTest {
 
     private lateinit var queueFacade: QueueFacade
     private lateinit var userService: UserService
@@ -41,7 +41,7 @@ class QueueUseCaseTest {
         val user = User.create("testUser", "test@test.com", "password")
         val queueToken = QueueToken.create(userId, 5)
 
-        every { userService.getUser(userId) } returns user
+        every { userService.findById(userId) } returns user
         every { queueTokenService.createQueueToken(userId) } returns queueToken
 
         // when
@@ -52,7 +52,7 @@ class QueueUseCaseTest {
         assertThat(result.queueStatus).isEqualTo(QueueStatus.WAITING)
         assertThat(result.queuePosition).isEqualTo(5)
 
-        verify(exactly = 1) { userService.getUser(userId) }
+        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { queueTokenService.createQueueToken(userId) }
     }
 

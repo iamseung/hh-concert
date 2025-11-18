@@ -10,10 +10,6 @@ class Concert private constructor(
     var updatedAt: LocalDateTime,
 ) {
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
     companion object {
         fun create(title: String, description: String?): Concert {
             val now = LocalDateTime.now()

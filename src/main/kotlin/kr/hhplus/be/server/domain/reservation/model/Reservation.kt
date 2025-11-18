@@ -33,10 +33,6 @@ class Reservation private constructor(
         this.updatedAt = LocalDateTime.now()
     }
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
     companion object {
         fun create(userId: Long, seatId: Long): Reservation {
             val now = LocalDateTime.now()

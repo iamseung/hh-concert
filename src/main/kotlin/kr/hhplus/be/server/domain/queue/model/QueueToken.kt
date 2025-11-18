@@ -56,10 +56,6 @@ class QueueToken private constructor(
         }
     }
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
     companion object {
         fun create(userId: Long, position: Int): QueueToken {
             val now = LocalDateTime.now()

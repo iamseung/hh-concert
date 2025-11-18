@@ -18,13 +18,23 @@ class PaymentRepositoryImpl(
 ) : PaymentRepository {
 
     override fun save(payment: Payment): Payment {
-        val entity = toEntity(payment)
+        val entity = if (payment.id != 0L) {
+            paymentJpaRepository.findByIdOrNull(payment.id)?.apply {
+                updateFromDomain(payment)
+            } ?: throw BusinessException(ErrorCode.PAYMENT_NOT_FOUND)
+        } else {
+            val reservation = reservationJpaRepository.findByIdOrNull(payment.reservationId)
+                ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
+            val user = userJpaRepository.findByIdOrNull(payment.userId)
+                ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+            PaymentEntity.fromDomain(payment, reservation, user)
+        }
         val saved = paymentJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): Payment? {
-        return paymentJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return paymentJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): Payment {
@@ -32,34 +42,10 @@ class PaymentRepositoryImpl(
     }
 
     override fun findByReservationId(reservationId: Long): Payment? {
-        return paymentJpaRepository.findByReservationId(reservationId)?.let { toDomain(it) }
+        return paymentJpaRepository.findByReservationId(reservationId)?.toDomain()
     }
 
     override fun findAllByUserId(userId: Long): List<Payment> {
-        return paymentJpaRepository.findAllByUserId(userId).map { toDomain(it) }
-    }
-
-    private fun toDomain(payment: PaymentEntity): Payment {
-        return Payment.reconstitute(
-            id = payment.id,
-            reservationId = payment.reservationEntity.id,
-            userId = payment.userEntity.id,
-            amount = payment.amount,
-            paymentStatus = payment.paymentStatus,
-            paymentAt = payment.paymentAt,
-            createdAt = payment.createdAt,
-            updatedAt = payment.updatedAt,
-        )
-    }
-
-    private fun toEntity(payment: Payment): PaymentEntity {
-        val reservation = reservationJpaRepository.findByIdOrNull(payment.reservationId)
-            ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
-        val user = userJpaRepository.findByIdOrNull(payment.userId)
-            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
-
-        val entity = PaymentEntity.of(reservation, user, payment.amount)
-
-        return entity
+        return paymentJpaRepository.findAllByUserId(userId).map { it.toDomain() }
     }
 }

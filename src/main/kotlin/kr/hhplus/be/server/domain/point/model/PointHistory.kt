@@ -9,15 +9,13 @@ data class PointHistory(
     val amount: Int,
     val transactionType: TransactionType,
     val createdAt: LocalDateTime = LocalDateTime.now(),
-    val isActive: Boolean = true,
-    val isDeleted: Boolean = false
 ) {
     companion object {
         fun of(user: User, amount: Int, transactionType: TransactionType): PointHistory {
             return PointHistory(
                 user = user,
                 amount = amount,
-                transactionType = transactionType
+                transactionType = transactionType,
             )
         }
     }

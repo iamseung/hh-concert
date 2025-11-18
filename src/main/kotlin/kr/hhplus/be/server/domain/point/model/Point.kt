@@ -37,10 +37,6 @@ class Point private constructor(
         }
     }
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
     companion object {
         fun create(userId: Long, balance: Int = 0): Point {
             val now = LocalDateTime.now()

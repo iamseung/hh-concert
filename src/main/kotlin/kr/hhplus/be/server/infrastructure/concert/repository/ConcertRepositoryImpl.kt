@@ -14,13 +14,21 @@ class ConcertRepositoryImpl(
 ) : ConcertRepository {
 
     override fun save(concert: Concert): Concert {
-        val entity = toEntity(concert)
+        val entity = if (concert.id != 0L) {
+            // 기존 엔티티 조회 후 업데이트
+            concertJpaRepository.findByIdOrNull(concert.id)?.apply {
+                updateFromDomain(concert)
+            } ?: throw BusinessException(ErrorCode.CONCERT_NOT_FOUND)
+        } else {
+            // 새로운 엔티티 생성
+            ConcertEntity.fromDomain(concert)
+        }
         val saved = concertJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): Concert? {
-        return concertJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return concertJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): Concert {
@@ -28,25 +36,6 @@ class ConcertRepositoryImpl(
     }
 
     override fun findAll(): List<Concert> {
-        return concertJpaRepository.findAll().map { toDomain(it) }
-    }
-
-    private fun toDomain(concert: ConcertEntity): Concert {
-        return Concert.reconstitute(
-            id = concert.id,
-            title = concert.title,
-            description = concert.description,
-            createdAt = concert.createdAt,
-            updatedAt = concert.updatedAt,
-        )
-    }
-
-    private fun toEntity(concert: Concert): ConcertEntity {
-        val entity = ConcertEntity(
-            title = concert.title,
-            description = concert.description,
-        )
-
-        return entity
+        return concertJpaRepository.findAll().map { it.toDomain() }
     }
 }

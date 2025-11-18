@@ -20,7 +20,7 @@ data class SeatResponse(
     companion object {
         fun from(seat: Seat): SeatResponse {
             return SeatResponse(
-                id = seat.getId(),
+                id = seat.id,
                 scheduleId = seat.concertScheduleId,
                 seatNumber = seat.seatNumber,
                 seatStatus = seat.seatStatus,

@@ -13,10 +13,6 @@ class Payment private constructor(
     var updatedAt: LocalDateTime,
 ) {
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
     companion object {
         fun create(reservationId: Long, userId: Long, amount: Int): Payment {
             val now = LocalDateTime.now()

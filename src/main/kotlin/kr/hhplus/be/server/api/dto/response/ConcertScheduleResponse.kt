@@ -19,7 +19,7 @@ data class ConcertScheduleResponse(
 
         fun from(schedule: ConcertSchedule): ConcertScheduleResponse {
             return ConcertScheduleResponse(
-                id = schedule.getId(),
+                id = schedule.id,
                 concertId = schedule.concertId,
                 concertDate = schedule.concertDate.format(dateFormatter),
             )

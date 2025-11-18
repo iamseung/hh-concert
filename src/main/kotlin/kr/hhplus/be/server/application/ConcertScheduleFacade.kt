@@ -18,8 +18,8 @@ class ConcertScheduleFacade(
 
     @Transactional(readOnly = true)
     fun getAvailableSchedules(concertId: Long): List<ConcertScheduleResponse> {
-        val concert = concertService.getConcert(concertId)
-        val availableSchedules = concertScheduleService.findByConcertId(concert.id)
+        concertService.findById(concertId)
+        val availableSchedules = concertScheduleService.findByConcertId(concertId)
             .filter { schedule -> schedule.isAvailable }
 
         return availableSchedules.map { ConcertScheduleResponse.from(it) }
@@ -27,8 +27,9 @@ class ConcertScheduleFacade(
 
     @Transactional(readOnly = true)
     fun getAvailableSeats(concertId: Long, scheduleId: Long): List<SeatResponse> {
-        concertService.getConcert(concertId)
-        concertScheduleService.findByConcertIdAndId(concertId, scheduleId)
+        val concert = concertService.findById(concertId)
+        val schedule = concertScheduleService.findById(scheduleId)
+        schedule.validateIsConcert(concert)
 
         val availableSeats = seatService.findAllByConcertScheduleId(scheduleId)
             .filter { seat -> seat.isAvailable }

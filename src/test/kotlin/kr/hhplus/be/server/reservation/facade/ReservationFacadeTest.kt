@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.reservation.usecase
+package kr.hhplus.be.server.reservation.facade
 
 import io.mockk.*
 import kr.hhplus.be.server.application.ReservationFacade
@@ -17,13 +17,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-class ReservationUseCaseTest {
+class ReservationFacadeTest {
 
     private lateinit var reservationFacade: ReservationFacade
     private lateinit var userService: UserService
     private lateinit var seatService: SeatService
     private lateinit var reservationService: ReservationService
     private lateinit var queueTokenService: QueueTokenService
+    private lateinit var concertScheduleService: kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 
     @BeforeEach
     fun setUp() {
@@ -31,12 +32,14 @@ class ReservationUseCaseTest {
         seatService = mockk()
         reservationService = mockk()
         queueTokenService = mockk()
+        concertScheduleService = mockk()
 
         reservationFacade = ReservationFacade(
             userService = userService,
             seatService = seatService,
             reservationService = reservationService,
             queueTokenService = queueTokenService,
+            concertScheduleService = concertScheduleService,
         )
     }
 
@@ -52,12 +55,16 @@ class ReservationUseCaseTest {
         val seat = spyk(Seat.create(scheduleId, 1, 50000))
         val reservation = Reservation.create(userId, seatId)
         val queueToken = "test-queue-token"
+        val schedule = mockk<kr.hhplus.be.server.domain.concert.model.ConcertSchedule>(relaxed = true)
 
-        every { userService.getUser(userId) } returns user
-        every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
+        every { userService.findById(userId) } returns user
+        every { concertScheduleService.findById(scheduleId) } returns schedule
+        every { schedule.id } returns scheduleId
+        every { schedule.validateAvailable() } just Runs
+        every { seatService.findByIdAndConcertScheduleIdWithLock(seatId, scheduleId) } returns seat
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
-        every { seat.validateAvailable() } just Runs
         every { seat.temporaryReservation() } just Runs
+        every { seatService.save(seat) } returns seat
         every { reservationService.save(any()) } returns reservation
 
         // when
@@ -65,8 +72,10 @@ class ReservationUseCaseTest {
 
         // then
         assertThat(result).isNotNull
-        verify(exactly = 1) { userService.getUser(userId) }
-        verify(exactly = 1) { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) }
+        verify(exactly = 1) { userService.findById(userId) }
+        verify(exactly = 1) { concertScheduleService.findById(scheduleId) }
+        verify(exactly = 1) { seatService.findByIdAndConcertScheduleIdWithLock(seatId, scheduleId) }
+        verify(exactly = 1) { seatService.save(seat) }
         verify(exactly = 1) { reservationService.save(any()) }
     }
 
@@ -81,19 +90,25 @@ class ReservationUseCaseTest {
         val user = User.create("testUser", "test@test.com", "password")
         val seat = spyk(Seat.create(scheduleId, 1, 50000))
         val queueToken = "test-queue-token"
+        val schedule = mockk<kr.hhplus.be.server.domain.concert.model.ConcertSchedule>(relaxed = true)
 
-        every { userService.getUser(userId) } returns user
-        every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
+        every { userService.findById(userId) } returns user
+        every { concertScheduleService.findById(scheduleId) } returns schedule
+        every { schedule.id } returns scheduleId
+        every { schedule.validateAvailable() } just Runs
+        every { seatService.findByIdAndConcertScheduleIdWithLock(seatId, scheduleId) } returns seat
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
-        every { seat.validateAvailable() } throws BusinessException(kr.hhplus.be.server.common.exception.ErrorCode.SEAT_NOT_AVAILABLE)
+        every { seat.temporaryReservation() } throws BusinessException(kr.hhplus.be.server.common.exception.ErrorCode.SEAT_NOT_AVAILABLE)
 
         // when & then
         assertThatThrownBy {
             reservationFacade.createReservation(userId, scheduleId, seatId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
-        verify(exactly = 1) { userService.getUser(userId) }
-        verify(exactly = 1) { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) }
+        verify(exactly = 1) { userService.findById(userId) }
+        verify(exactly = 1) { concertScheduleService.findById(scheduleId) }
+        verify(exactly = 1) { seatService.findByIdAndConcertScheduleIdWithLock(seatId, scheduleId) }
+        verify(exactly = 0) { seatService.save(any()) }
         verify(exactly = 0) { reservationService.save(any()) }
     }
 
@@ -106,12 +121,10 @@ class ReservationUseCaseTest {
         val seatId = 1L
 
         val user = User.create("testUser", "test@test.com", "password")
-        val seat = spyk(Seat.create(scheduleId, 1, 50000))
         val queueToken = "test-queue-token"
         val mockToken = mockk<QueueToken>()
 
-        every { userService.getUser(userId) } returns user
-        every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
+        every { userService.findById(userId) } returns user
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockToken
         every { mockToken.validateActive() } throws BusinessException(kr.hhplus.be.server.common.exception.ErrorCode.QUEUE_TOKEN_NOT_ACTIVE)
 
@@ -120,8 +133,8 @@ class ReservationUseCaseTest {
             reservationFacade.createReservation(userId, scheduleId, seatId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
-        verify(exactly = 1) { userService.getUser(userId) }
-        verify(exactly = 1) { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) }
+        verify(exactly = 1) { queueTokenService.getQueueTokenByToken(queueToken) }
+        verify(exactly = 0) { concertScheduleService.findById(any()) }
         verify(exactly = 0) { reservationService.save(any()) }
     }
 
@@ -134,7 +147,7 @@ class ReservationUseCaseTest {
         val reservation = Reservation.create(userId, 1L)
         val reservations = listOf(reservation)
 
-        every { userService.getUser(userId) } returns user
+        every { userService.findById(userId) } returns user
         every { reservationService.findAllByUserId(userId) } returns reservations
 
         // when
@@ -143,7 +156,7 @@ class ReservationUseCaseTest {
         // then
         assertThat(result).isNotNull
         assertThat(result).hasSize(1)
-        verify(exactly = 1) { userService.getUser(userId) }
+        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { reservationService.findAllByUserId(userId) }
     }
 }

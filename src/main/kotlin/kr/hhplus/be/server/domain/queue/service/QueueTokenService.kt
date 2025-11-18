@@ -4,14 +4,12 @@ import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueToken
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
 class QueueTokenService(
     private val queueTokenRepository: QueueTokenRepository,
 ) {
 
-    @Transactional
     fun createQueueToken(userId: Long): QueueToken {
         val existingActiveToken = queueTokenRepository.findAllByStatus(QueueStatus.ACTIVE)
             .find { it.userId == userId }
@@ -32,18 +30,15 @@ class QueueTokenService(
         return queueTokenRepository.save(queueToken)
     }
 
-    @Transactional(readOnly = true)
     fun getQueueTokenByToken(token: String): QueueToken {
         return queueTokenRepository.findByTokenOrThrow(token)
     }
 
-    @Transactional
     fun expireQueueToken(queueToken: QueueToken): QueueToken {
         queueToken.expire()
         return queueTokenRepository.save(queueToken)
     }
 
-    @Transactional
     fun updateWaitingPositions() {
         val waitingTokens = queueTokenRepository.findAllByStatus(QueueStatus.WAITING)
 
@@ -53,7 +48,6 @@ class QueueTokenService(
         }
     }
 
-    @Transactional
     fun activateWaitingTokens(count: Int) {
         val waitingTokens = queueTokenRepository.findAllByStatus(QueueStatus.WAITING)
 

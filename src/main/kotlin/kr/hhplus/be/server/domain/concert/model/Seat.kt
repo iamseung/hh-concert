@@ -5,7 +5,7 @@ import kr.hhplus.be.server.common.exception.ErrorCode
 import java.time.LocalDateTime
 
 class Seat private constructor(
-    private var id: Long?,
+    var id: Long,
     val concertScheduleId: Long,
     val seatNumber: Int,
     var seatStatus: SeatStatus,
@@ -37,17 +37,11 @@ class Seat private constructor(
         this.updatedAt = LocalDateTime.now()
     }
 
-    fun assignId(id: Long) {
-        this.id = id
-    }
-
-    fun getId(): Long? = id
-
     companion object {
         fun create(concertScheduleId: Long, seatNumber: Int, price: Int): Seat {
             val now = LocalDateTime.now()
             return Seat(
-                id = null,
+                id = 0L,
                 concertScheduleId = concertScheduleId,
                 seatNumber = seatNumber,
                 seatStatus = SeatStatus.AVAILABLE,

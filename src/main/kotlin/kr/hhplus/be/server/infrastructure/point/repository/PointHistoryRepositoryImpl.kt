@@ -14,18 +14,9 @@ class PointHistoryRepositoryImpl(
 ) : PointHistoryRepository {
 
     override fun save(user: User, amount: Int, transactionType: TransactionType): PointHistory {
-        val userEntity = UserEntity.from(user)
+        val userEntity = UserEntity.fromDomain(user)
         val pointHistoryEntity = PointHistoryEntity.of(userEntity, amount, transactionType)
         val savedEntity = pointHistoryJpaRepository.save(pointHistoryEntity)
-
-        return PointHistory(
-            id = savedEntity.id,
-            user = user,
-            amount = savedEntity.amount,
-            transactionType = savedEntity.transactionType,
-            createdAt = savedEntity.createdAt,
-            isActive = savedEntity.isActive,
-            isDeleted = savedEntity.isDeleted
-        )
+        return savedEntity.toDomain()
     }
 }

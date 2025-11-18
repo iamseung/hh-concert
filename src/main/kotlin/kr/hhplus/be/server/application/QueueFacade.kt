@@ -15,7 +15,7 @@ class QueueFacade(
 ) {
 
     fun issueQueueToken(userId: Long): QueueTokenResponse {
-        userService.getUser(userId)
+        userService.findById(userId)
         val queueToken = queueTokenService.createQueueToken(userId)
 
         return QueueTokenResponse.from(queueToken)
@@ -24,7 +24,6 @@ class QueueFacade(
     @Transactional(readOnly = true)
     fun getQueueStatus(token: String): QueueStatusResponse {
         val queueToken = queueTokenService.getQueueTokenByToken(token)
-
         return QueueStatusResponse.from(queueToken)
     }
 

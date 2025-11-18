@@ -18,17 +18,17 @@ class PointFacade(
 
     @Transactional(readOnly = true)
     fun getPoints(userId: Long): PointResponse {
-        userService.getUser(userId)
+        userService.findById(userId)
         val point = pointService.getPointByUserId(userId)
 
         return PointResponse.from(point)
     }
 
     fun chargePoint(userId: Long, amount: Int): PointResponse {
-        userService.getUser(userId)
+        val user = userService.findById(userId)
         val point = pointService.chargePoint(userId, amount)
 
-        pointHistoryService.savePointHistory(userId, amount, TransactionType.CHARGE)
+        pointHistoryService.savePointHistory(user, amount, TransactionType.CHARGE)
         return PointResponse.from(point)
     }
 }

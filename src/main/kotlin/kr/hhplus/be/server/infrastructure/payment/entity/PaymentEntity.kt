@@ -6,8 +6,9 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import kr.hhplus.be.server.infrastructure.comon.BaseEntity
+import kr.hhplus.be.server.domain.payment.model.Payment
 import kr.hhplus.be.server.domain.payment.model.PaymentStatus
+import kr.hhplus.be.server.infrastructure.comon.BaseEntity
 import kr.hhplus.be.server.infrastructure.reservation.entity.ReservationEntity
 import kr.hhplus.be.server.infrastructure.user.entity.UserEntity
 import java.time.LocalDateTime
@@ -26,16 +27,38 @@ class PaymentEntity(
     val amount: Int,
 ) : BaseEntity() {
     @Enumerated(EnumType.STRING)
-    val paymentStatus: PaymentStatus = PaymentStatus.PENDING
+    var paymentStatus: PaymentStatus = PaymentStatus.PENDING
 
-    val paymentAt: LocalDateTime = LocalDateTime.now()
+    var paymentAt: LocalDateTime = LocalDateTime.now()
+
+    fun toDomain(): Payment {
+        return Payment.reconstitute(
+            id = id,
+            reservationId = reservationEntity.id,
+            userId = userEntity.id,
+            amount = amount,
+            paymentStatus = paymentStatus,
+            paymentAt = paymentAt,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+        )
+    }
+
+    fun updateFromDomain(payment: Payment) {
+        this.paymentStatus = payment.paymentStatus
+        this.paymentAt = payment.paymentAt
+    }
 
     companion object {
-        fun of(reservationEntity: ReservationEntity, userEntity: UserEntity, amount: Int): PaymentEntity {
+        fun fromDomain(
+            payment: Payment,
+            reservationEntity: ReservationEntity,
+            userEntity: UserEntity,
+        ): PaymentEntity {
             return PaymentEntity(
                 reservationEntity = reservationEntity,
                 userEntity = userEntity,
-                amount = amount,
+                amount = payment.amount,
             )
         }
     }

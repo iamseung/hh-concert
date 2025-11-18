@@ -14,13 +14,19 @@ class UserRepositoryImpl(
 ) : UserRepository {
 
     override fun save(user: User): User {
-        val entity = toEntity(user)
+        val entity = if (user.id != 0L) {
+            userJpaRepository.findByIdOrNull(user.id)?.apply {
+                updateFromDomain(user)
+            } ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+        } else {
+            UserEntity.fromDomain(user)
+        }
         val saved = userJpaRepository.save(entity)
-        return toDomain(saved)
+        return saved.toDomain()
     }
 
     override fun findById(id: Long): User? {
-        return userJpaRepository.findByIdOrNull(id)?.let { toDomain(it) }
+        return userJpaRepository.findByIdOrNull(id)?.toDomain()
     }
 
     override fun findByIdOrThrow(id: Long): User {
@@ -28,30 +34,10 @@ class UserRepositoryImpl(
     }
 
     override fun findByEmail(email: String): User? {
-        return userJpaRepository.findByEmail(email)?.let { toDomain(it) }
+        return userJpaRepository.findByEmail(email)?.toDomain()
     }
 
     override fun existsByEmail(email: String): Boolean {
         return userJpaRepository.existsByEmail(email)
-    }
-
-    private fun toDomain(user: UserEntity): User {
-        return User.reconstitute(
-            id = user.id,
-            userName = user.userName,
-            email = user.email,
-            password = user.password,
-            createdAt = user.createdAt,
-            updatedAt = user.updatedAt,
-        )
-    }
-
-    private fun toEntity(user: User): UserEntity {
-        val entity = UserEntity(
-            userName = user.userName,
-            email = user.email,
-            password = user.password,
-        )
-        return entity
     }
 }
