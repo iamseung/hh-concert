@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.domain.point.repository
 
-import kr.hhplus.be.server.domain.point.model.PointHistory
+import kr.hhplus.be.server.domain.point.model.PointHistoryModel
 import kr.hhplus.be.server.domain.point.model.TransactionType
-import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.model.UserModel
 
 interface PointHistoryRepository {
-    fun save(user: User, amount: Int, transactionType: TransactionType): PointHistory
+    fun save(userModel: UserModel, amount: Int, transactionType: TransactionType): PointHistoryModel
 }

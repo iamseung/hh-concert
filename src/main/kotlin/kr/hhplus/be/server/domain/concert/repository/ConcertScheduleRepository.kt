@@ -1,12 +1,12 @@
 package kr.hhplus.be.server.domain.concert.repository
 
-import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import java.time.LocalDate
 
 interface ConcertScheduleRepository {
-    fun save(concertSchedule: ConcertSchedule): ConcertSchedule
-    fun findById(id: Long): ConcertSchedule?
-    fun findByIdOrThrow(id: Long): ConcertSchedule
-    fun findAllByConcertId(concertId: Long): List<ConcertSchedule>
-    fun findAvailableSchedules(concertId: Long, fromDate: LocalDate): List<ConcertSchedule>
+    fun save(concertScheduleModel: ConcertScheduleModel): ConcertScheduleModel
+    fun findById(id: Long): ConcertScheduleModel?
+    fun findByIdOrThrow(id: Long): ConcertScheduleModel
+    fun findAllByConcertId(concertId: Long): List<ConcertScheduleModel>
+    fun findAvailableSchedules(concertId: Long, fromDate: LocalDate): List<ConcertScheduleModel>
 }

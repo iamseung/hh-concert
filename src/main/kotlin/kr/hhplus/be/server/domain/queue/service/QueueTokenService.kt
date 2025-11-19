@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.queue.service
 
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
-import kr.hhplus.be.server.domain.queue.model.QueueToken
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import org.springframework.stereotype.Service
 
@@ -10,7 +10,7 @@ class QueueTokenService(
     private val queueTokenRepository: QueueTokenRepository,
 ) {
 
-    fun createQueueToken(userId: Long): QueueToken {
+    fun createQueueToken(userId: Long): QueueTokenModel {
         val existingActiveToken = queueTokenRepository.findAllByStatus(QueueStatus.ACTIVE)
             .find { it.userId == userId }
         if (existingActiveToken != null) {
@@ -26,17 +26,17 @@ class QueueTokenService(
         val waitingCount = queueTokenRepository.countByStatus(QueueStatus.WAITING)
         val position = (waitingCount + 1).toInt()
 
-        val queueToken = QueueToken.create(userId, position)
-        return queueTokenRepository.save(queueToken)
+        val queueTokenModel = QueueTokenModel.create(userId, position)
+        return queueTokenRepository.save(queueTokenModel)
     }
 
-    fun getQueueTokenByToken(token: String): QueueToken {
+    fun getQueueTokenByToken(token: String): QueueTokenModel {
         return queueTokenRepository.findByTokenOrThrow(token)
     }
 
-    fun expireQueueToken(queueToken: QueueToken): QueueToken {
-        queueToken.expire()
-        return queueTokenRepository.save(queueToken)
+    fun expireQueueToken(queueTokenModel: QueueTokenModel): QueueTokenModel {
+        queueTokenModel.expire()
+        return queueTokenRepository.save(queueTokenModel)
     }
 
     fun updateWaitingPositions() {

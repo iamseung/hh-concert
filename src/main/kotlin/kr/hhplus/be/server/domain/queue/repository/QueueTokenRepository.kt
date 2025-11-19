@@ -1,16 +1,16 @@
 package kr.hhplus.be.server.domain.queue.repository
 
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
-import kr.hhplus.be.server.domain.queue.model.QueueToken
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 
 interface QueueTokenRepository {
-    fun save(queueToken: QueueToken): QueueToken
-    fun findById(id: Long): QueueToken?
-    fun findByIdOrThrow(id: Long): QueueToken
-    fun findByToken(token: String): QueueToken?
-    fun findByTokenOrThrow(token: String): QueueToken
-    fun findAllByStatus(status: QueueStatus): List<QueueToken>
-    fun findTopWaitingTokens(limit: Int): List<QueueToken>
+    fun save(queueTokenModel: QueueTokenModel): QueueTokenModel
+    fun findById(id: Long): QueueTokenModel?
+    fun findByIdOrThrow(id: Long): QueueTokenModel
+    fun findByToken(token: String): QueueTokenModel?
+    fun findByTokenOrThrow(token: String): QueueTokenModel
+    fun findAllByStatus(status: QueueStatus): List<QueueTokenModel>
+    fun findTopWaitingTokens(limit: Int): List<QueueTokenModel>
     fun countByStatus(status: QueueStatus): Long
-    fun findExpiredTokens(): List<QueueToken>
+    fun findExpiredTokens(): List<QueueTokenModel>
 }

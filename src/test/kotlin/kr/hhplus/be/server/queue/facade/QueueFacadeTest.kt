@@ -6,9 +6,9 @@ import kr.hhplus.be.server.common.exception.AuthenticationException
 import kr.hhplus.be.server.common.exception.AuthorizationException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
-import kr.hhplus.be.server.domain.queue.model.QueueToken
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
-import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -38,11 +38,11 @@ class QueueFacadeTest {
     fun issueQueueToken_Success() {
         // given
         val userId = 1L
-        val user = User.create("testUser", "test@test.com", "password")
-        val queueToken = QueueToken.create(userId, 5)
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
+        val queueTokenModel = QueueTokenModel.create(userId, 5)
 
-        every { userService.findById(userId) } returns user
-        every { queueTokenService.createQueueToken(userId) } returns queueToken
+        every { userService.findById(userId) } returns userModel
+        every { queueTokenService.createQueueToken(userId) } returns queueTokenModel
 
         // when
         val result = queueFacade.issueQueueToken(userId)
@@ -61,9 +61,9 @@ class QueueFacadeTest {
     fun getQueueStatus_Success_Waiting() {
         // given
         val token = "test-token-uuid"
-        val queueToken = QueueToken.create(1L, 10)
+        val queueTokenModel = QueueTokenModel.create(1L, 10)
 
-        every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
+        every { queueTokenService.getQueueTokenByToken(token) } returns queueTokenModel
 
         // when
         val result = queueFacade.getQueueStatus(token)
@@ -82,11 +82,11 @@ class QueueFacadeTest {
     fun getQueueStatus_Success_Active() {
         // given
         val token = "test-token-uuid"
-        val queueToken = spyk(QueueToken.create(1L, 10))
-        every { queueToken.queueStatus } returns QueueStatus.ACTIVE
-        every { queueToken.queuePosition } returns 0
+        val queueTokenModel = spyk(QueueTokenModel.create(1L, 10))
+        every { queueTokenModel.queueStatus } returns QueueStatus.ACTIVE
+        every { queueTokenModel.queuePosition } returns 0
 
-        every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
+        every { queueTokenService.getQueueTokenByToken(token) } returns queueTokenModel
 
         // when
         val result = queueFacade.getQueueStatus(token)
@@ -123,16 +123,16 @@ class QueueFacadeTest {
     fun validateQueueToken_Success() {
         // given
         val token = "test-token-uuid"
-        val queueToken = spyk(QueueToken.create(1L, 5))
+        val queueTokenModel = spyk(QueueTokenModel.create(1L, 5))
 
-        every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
-        every { queueToken.validateActive() } just Runs
+        every { queueTokenService.getQueueTokenByToken(token) } returns queueTokenModel
+        every { queueTokenModel.validateActive() } just Runs
 
         // when & then
         queueFacade.validateQueueToken(token)
 
         verify(exactly = 1) { queueTokenService.getQueueTokenByToken(token) }
-        verify(exactly = 1) { queueToken.validateActive() }
+        verify(exactly = 1) { queueTokenModel.validateActive() }
     }
 
     @Test
@@ -140,10 +140,10 @@ class QueueFacadeTest {
     fun validateQueueToken_Fail_NotActive() {
         // given
         val token = "test-token-uuid"
-        val queueToken = spyk(QueueToken.create(1L, 5))
+        val queueTokenModel = spyk(QueueTokenModel.create(1L, 5))
 
-        every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
-        every { queueToken.validateActive() } throws AuthorizationException(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE)
+        every { queueTokenService.getQueueTokenByToken(token) } returns queueTokenModel
+        every { queueTokenModel.validateActive() } throws AuthorizationException(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE)
 
         // when & then
         assertThatThrownBy {
@@ -153,7 +153,7 @@ class QueueFacadeTest {
             .hasMessage(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE.message)
 
         verify(exactly = 1) { queueTokenService.getQueueTokenByToken(token) }
-        verify(exactly = 1) { queueToken.validateActive() }
+        verify(exactly = 1) { queueTokenModel.validateActive() }
     }
 
     @Test
@@ -161,10 +161,10 @@ class QueueFacadeTest {
     fun validateQueueToken_Fail_Expired() {
         // given
         val token = "test-token-uuid"
-        val queueToken = spyk(QueueToken.create(1L, 5))
+        val queueTokenModel = spyk(QueueTokenModel.create(1L, 5))
 
-        every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
-        every { queueToken.validateActive() } throws AuthorizationException(ErrorCode.TOKEN_EXPIRED)
+        every { queueTokenService.getQueueTokenByToken(token) } returns queueTokenModel
+        every { queueTokenModel.validateActive() } throws AuthorizationException(ErrorCode.TOKEN_EXPIRED)
 
         // when & then
         assertThatThrownBy {
@@ -174,7 +174,7 @@ class QueueFacadeTest {
             .hasMessage(ErrorCode.TOKEN_EXPIRED.message)
 
         verify(exactly = 1) { queueTokenService.getQueueTokenByToken(token) }
-        verify(exactly = 1) { queueToken.validateActive() }
+        verify(exactly = 1) { queueTokenModel.validateActive() }
     }
 
     @Test

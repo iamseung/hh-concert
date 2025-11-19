@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.api.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
 
 @Schema(description = "좌석 응답")
@@ -18,13 +18,13 @@ data class SeatResponse(
     val price: Int,
 ) {
     companion object {
-        fun from(seat: Seat): SeatResponse {
+        fun from(seatModel: SeatModel): SeatResponse {
             return SeatResponse(
-                id = seat.id,
-                scheduleId = seat.concertScheduleId,
-                seatNumber = seat.seatNumber,
-                seatStatus = seat.seatStatus,
-                price = seat.price,
+                id = seatModel.id,
+                scheduleId = seatModel.concertScheduleId,
+                seatNumber = seatModel.seatNumber,
+                seatStatus = seatModel.seatStatus,
+                price = seatModel.price,
             )
         }
     }

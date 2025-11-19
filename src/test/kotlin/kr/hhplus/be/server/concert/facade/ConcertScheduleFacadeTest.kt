@@ -2,9 +2,9 @@ package kr.hhplus.be.server.concert.facade
 
 import io.mockk.*
 import kr.hhplus.be.server.application.ConcertScheduleFacade
-import kr.hhplus.be.server.domain.concert.model.Concert
-import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
-import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.concert.model.ConcertModel
+import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
+import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.ConcertService
 import kr.hhplus.be.server.domain.concert.service.SeatService
@@ -39,14 +39,15 @@ class ConcertScheduleFacadeTest {
     fun getAvailableSchedules_Success() {
         // given
         val concertId = 1L
-        val concert = Concert.create("Test Concert", "Test Description")
-        val schedule1 = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
-        val schedule2 = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(20)))
+        val concertModel = spyk(ConcertModel.create("Test Concert", "Test Description"))
+        val schedule1 = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().plusDays(10)))
+        val schedule2 = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().plusDays(20)))
         val schedules = listOf(schedule1, schedule2)
 
+        every { concertModel.id } returns concertId
         every { schedule1.isAvailable } returns true
         every { schedule2.isAvailable } returns true
-        every { concertService.findById(concertId) } returns concert
+        every { concertService.findById(concertId) } returns concertModel
         every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
@@ -63,14 +64,15 @@ class ConcertScheduleFacadeTest {
     fun getAvailableSchedules_FilterExpired() {
         // given
         val concertId = 1L
-        val concert = Concert.create("Test Concert", "Test Description")
-        val availableSchedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
-        val expiredSchedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().minusDays(1)))
+        val concertModel = spyk(ConcertModel.create("Test Concert", "Test Description"))
+        val availableSchedule = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().plusDays(10)))
+        val expiredSchedule = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().minusDays(1)))
         val schedules = listOf(availableSchedule, expiredSchedule)
 
+        every { concertModel.id } returns concertId
         every { availableSchedule.isAvailable } returns true
         every { expiredSchedule.isAvailable } returns false
-        every { concertService.findById(concertId) } returns concert
+        every { concertService.findById(concertId) } returns concertModel
         every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
@@ -87,14 +89,15 @@ class ConcertScheduleFacadeTest {
     fun getAvailableSchedules_EmptyWhenAllExpired() {
         // given
         val concertId = 1L
-        val concert = Concert.create("Test Concert", "Test Description")
-        val expiredSchedule1 = spyk(ConcertSchedule.create(concertId, LocalDate.now().minusDays(10)))
-        val expiredSchedule2 = spyk(ConcertSchedule.create(concertId, LocalDate.now().minusDays(5)))
+        val concertModel = spyk(ConcertModel.create("Test Concert", "Test Description"))
+        val expiredSchedule1 = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().minusDays(10)))
+        val expiredSchedule2 = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().minusDays(5)))
         val schedules = listOf(expiredSchedule1, expiredSchedule2)
 
+        every { concertModel.id } returns concertId
         every { expiredSchedule1.isAvailable } returns false
         every { expiredSchedule2.isAvailable } returns false
-        every { concertService.findById(concertId) } returns concert
+        every { concertService.findById(concertId) } returns concertModel
         every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
@@ -112,15 +115,15 @@ class ConcertScheduleFacadeTest {
         // given
         val concertId = 1L
         val scheduleId = 1L
-        val concert = Concert.create("Test Concert", "Test Description")
-        val schedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
-        val seat1 = spyk(Seat.create(scheduleId, 1, 50000))
-        val seat2 = spyk(Seat.create(scheduleId, 2, 50000))
-        val seats = listOf(seat1, seat2)
+        val concertModel = ConcertModel.create("Test Concert", "Test Description")
+        val schedule = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().plusDays(10)))
+        val seatModel1 = spyk(SeatModel.create(scheduleId, 1, 50000))
+        val seatModel2 = spyk(SeatModel.create(scheduleId, 2, 50000))
+        val seats = listOf(seatModel1, seatModel2)
 
-        every { seat1.isAvailable } returns true
-        every { seat2.isAvailable } returns true
-        every { concertService.findById(concertId) } returns concert
+        every { seatModel1.isAvailable } returns true
+        every { seatModel2.isAvailable } returns true
+        every { concertService.findById(concertId) } returns concertModel
         every { concertScheduleService.findById(scheduleId) } returns schedule
         every { schedule.validateIsConcert(any()) } just Runs
         every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
@@ -140,17 +143,17 @@ class ConcertScheduleFacadeTest {
         // given
         val concertId = 1L
         val scheduleId = 1L
-        val concert = Concert.create("Test Concert", "Test Description")
-        val schedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
-        val availableSeat = spyk(Seat.create(scheduleId, 1, 50000))
-        val reservedSeat = spyk(Seat.create(scheduleId, 2, 50000))
-        val temporarySeat = spyk(Seat.create(scheduleId, 3, 50000))
-        val seats = listOf(availableSeat, reservedSeat, temporarySeat)
+        val concertModel = ConcertModel.create("Test Concert", "Test Description")
+        val schedule = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().plusDays(10)))
+        val availableSeatModel = spyk(SeatModel.create(scheduleId, 1, 50000))
+        val reservedSeatModel = spyk(SeatModel.create(scheduleId, 2, 50000))
+        val temporarySeatModel = spyk(SeatModel.create(scheduleId, 3, 50000))
+        val seats = listOf(availableSeatModel, reservedSeatModel, temporarySeatModel)
 
-        every { availableSeat.isAvailable } returns true
-        every { reservedSeat.isAvailable } returns false
-        every { temporarySeat.isAvailable } returns false
-        every { concertService.findById(concertId) } returns concert
+        every { availableSeatModel.isAvailable } returns true
+        every { reservedSeatModel.isAvailable } returns false
+        every { temporarySeatModel.isAvailable } returns false
+        every { concertService.findById(concertId) } returns concertModel
         every { concertScheduleService.findById(scheduleId) } returns schedule
         every { schedule.validateIsConcert(any()) } just Runs
         every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
@@ -170,15 +173,15 @@ class ConcertScheduleFacadeTest {
         // given
         val concertId = 1L
         val scheduleId = 1L
-        val concert = Concert.create("Test Concert", "Test Description")
-        val schedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
-        val reservedSeat1 = spyk(Seat.create(scheduleId, 1, 50000))
-        val reservedSeat2 = spyk(Seat.create(scheduleId, 2, 50000))
-        val seats = listOf(reservedSeat1, reservedSeat2)
+        val concertModel = ConcertModel.create("Test Concert", "Test Description")
+        val schedule = spyk(ConcertScheduleModel.create(concertId, LocalDate.now().plusDays(10)))
+        val reservedSeatModel1 = spyk(SeatModel.create(scheduleId, 1, 50000))
+        val reservedSeatModel2 = spyk(SeatModel.create(scheduleId, 2, 50000))
+        val seats = listOf(reservedSeatModel1, reservedSeatModel2)
 
-        every { reservedSeat1.isAvailable } returns false
-        every { reservedSeat2.isAvailable } returns false
-        every { concertService.findById(concertId) } returns concert
+        every { reservedSeatModel1.isAvailable } returns false
+        every { reservedSeatModel2.isAvailable } returns false
+        every { concertService.findById(concertId) } returns concertModel
         every { concertScheduleService.findById(scheduleId) } returns schedule
         every { schedule.validateIsConcert(any()) } just Runs
         every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats

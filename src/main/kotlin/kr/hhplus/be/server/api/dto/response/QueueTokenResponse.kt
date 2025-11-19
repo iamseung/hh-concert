@@ -2,7 +2,7 @@ package kr.hhplus.be.server.api.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
-import kr.hhplus.be.server.domain.queue.model.QueueToken
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import java.time.LocalDateTime
 
 @Schema(description = "대기열 토큰 응답")
@@ -35,17 +35,17 @@ data class QueueTokenResponse(
     val updatedAt: LocalDateTime?,
 ) {
     companion object {
-        fun from(queueToken: QueueToken): QueueTokenResponse {
+        fun from(queueTokenModel: QueueTokenModel): QueueTokenResponse {
             return QueueTokenResponse(
-                id = queueToken.id,
-                userId = queueToken.userId,
-                token = queueToken.token,
-                queueStatus = queueToken.queueStatus,
-                queuePosition = queueToken.queuePosition,
-                activatedAt = queueToken.activatedAt,
-                expiresAt = queueToken.expiresAt,
-                createdAt = queueToken.createdAt,
-                updatedAt = queueToken.updatedAt,
+                id = queueTokenModel.id,
+                userId = queueTokenModel.userId,
+                token = queueTokenModel.token,
+                queueStatus = queueTokenModel.queueStatus,
+                queuePosition = queueTokenModel.queuePosition,
+                activatedAt = queueTokenModel.activatedAt,
+                expiresAt = queueTokenModel.expiresAt,
+                createdAt = queueTokenModel.createdAt,
+                updatedAt = queueTokenModel.updatedAt,
             )
         }
     }

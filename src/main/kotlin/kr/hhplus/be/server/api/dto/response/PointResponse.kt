@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.api.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.domain.point.model.Point
+import kr.hhplus.be.server.domain.point.model.PointModel
 
 @Schema(description = "포인트 응답")
 data class PointResponse(
@@ -14,11 +14,11 @@ data class PointResponse(
 ) {
 
     companion object {
-        fun from(point: Point): PointResponse {
+        fun from(pointModel: PointModel): PointResponse {
             return PointResponse(
-                id = point.id,
-                userId = point.userId,
-                balance = point.balance,
+                id = pointModel.id,
+                userId = pointModel.userId,
+                balance = pointModel.balance,
             )
         }
     }

@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.api.dto.response
 
-import kr.hhplus.be.server.domain.payment.model.Payment
+import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.model.PaymentStatus
 
 data class PaymentResponse(
@@ -11,13 +11,13 @@ data class PaymentResponse(
     val paymentStatus: PaymentStatus,
 ) {
     companion object {
-        fun from(payment: Payment): PaymentResponse {
+        fun from(paymentModel: PaymentModel): PaymentResponse {
             return PaymentResponse(
-                paymentId = payment.id,
-                reservationId = payment.reservationId,
-                userId = payment.userId,
-                amount = payment.amount,
-                paymentStatus = payment.paymentStatus,
+                paymentId = paymentModel.id,
+                reservationId = paymentModel.reservationId,
+                userId = paymentModel.userId,
+                amount = paymentModel.amount,
+                paymentStatus = paymentModel.paymentStatus,
             )
         }
     }

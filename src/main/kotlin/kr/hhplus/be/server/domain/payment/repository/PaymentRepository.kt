@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.domain.payment.repository
 
-import kr.hhplus.be.server.domain.payment.model.Payment
+import kr.hhplus.be.server.domain.payment.model.PaymentModel
 
 interface PaymentRepository {
-    fun save(payment: Payment): Payment
-    fun findById(id: Long): Payment?
-    fun findByIdOrThrow(id: Long): Payment
-    fun findByReservationId(reservationId: Long): Payment?
-    fun findAllByUserId(userId: Long): List<Payment>
+    fun save(paymentModel: PaymentModel): PaymentModel
+    fun findById(id: Long): PaymentModel?
+    fun findByIdOrThrow(id: Long): PaymentModel
+    fun findByReservationId(reservationId: Long): PaymentModel?
+    fun findAllByUserId(userId: Long): List<PaymentModel>
 }

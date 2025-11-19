@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.domain.user.service
 
-import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.repository.UserRepository
 import org.springframework.stereotype.Service
 
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 class UserService(
     private val userRepository: UserRepository,
 ) {
-    fun findById(userId: Long): User {
+    fun findById(userId: Long): UserModel {
         return userRepository.findByIdOrThrow(userId)
     }
 }

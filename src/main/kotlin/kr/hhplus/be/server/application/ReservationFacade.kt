@@ -4,7 +4,7 @@ import kr.hhplus.be.server.api.dto.response.ReservationResponse
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
-import kr.hhplus.be.server.domain.reservation.model.Reservation
+import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.service.UserService
 import org.springframework.stereotype.Component
@@ -43,9 +43,8 @@ class ReservationFacade(
 
         val seat = seatService.findByIdAndConcertScheduleIdWithLock(seatId, schedule.id)
         seat.temporaryReservation()
-        seatService.save(seat)
 
-        val reservation = reservationService.save(Reservation.create(userId, seat.id))
-        return ReservationResponse.from(reservation)
+        val reservationModel = reservationService.save(ReservationModel.create(userId, seat.id))
+        return ReservationResponse.from(reservationModel)
     }
 }

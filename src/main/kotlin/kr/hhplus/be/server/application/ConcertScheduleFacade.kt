@@ -18,8 +18,8 @@ class ConcertScheduleFacade(
 
     @Transactional(readOnly = true)
     fun getAvailableSchedules(concertId: Long): List<ConcertScheduleResponse> {
-        concertService.findById(concertId)
-        val availableSchedules = concertScheduleService.findByConcertId(concertId)
+        val concert = concertService.findById(concertId)
+        val availableSchedules = concertScheduleService.findByConcertId(concert.id)
             .filter { schedule -> schedule.isAvailable }
 
         return availableSchedules.map { ConcertScheduleResponse.from(it) }

@@ -3,17 +3,17 @@ package kr.hhplus.be.server.payment.facade
 import io.mockk.*
 import kr.hhplus.be.server.application.PaymentFacade
 import kr.hhplus.be.server.common.exception.BusinessException
-import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.service.SeatService
-import kr.hhplus.be.server.domain.payment.model.Payment
+import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.service.PaymentService
 import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
-import kr.hhplus.be.server.domain.reservation.model.Reservation
+import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
-import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -62,25 +62,24 @@ class PaymentFacadeTest {
         val seatId = 1L
         val seatPrice = 50000
 
-        val user = User.create("testUser", "test@test.com", "password")
-        val reservation = spyk(Reservation.create(userId, seatId))
-        val seat = spyk(Seat.create(1L, 1, seatPrice))
-        val payment = Payment.create(reservationId, userId, seatPrice)
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
+        val reservationModel = spyk(ReservationModel.create(userId, seatId))
+        val seatModel = spyk(SeatModel.create(1L, 1, seatPrice))
+        val paymentModel = PaymentModel.create(reservationId, userId, seatPrice)
         val queueToken = "test-queue-token"
 
-        every { userService.findById(userId) } returns user
-        every { reservationService.findById(reservationId) } returns reservation
-        every { reservation.validateOwnership(userId) } just Runs
-        every { reservation.validatePayable() } just Runs
-        every { reservation.seatId } returns seatId
-        every { seatService.findById(seatId) } returns seat
-        every { seat.confirmReservation() } just Runs
-        every { seatService.save(seat) } returns seat
-        every { reservation.confirmPayment() } just Runs
-        every { reservationService.save(reservation) } returns reservation
+        every { userService.findById(userId) } returns userModel
+        every { reservationService.findById(reservationId) } returns reservationModel
+        every { reservationModel.validateOwnership(userId) } just Runs
+        every { reservationModel.validatePayable() } just Runs
+        every { reservationModel.seatId } returns seatId
+        every { seatService.findById(seatId) } returns seatModel
+        every { seatModel.confirmReservation() } just Runs
+        every { reservationModel.confirmPayment() } just Runs
+        every { reservationService.save(reservationModel) } returns reservationModel
         every { pointService.usePoint(userId, seatPrice) } returns mockk()
-        every { pointHistoryService.savePointHistory(user, seatPrice, TransactionType.USE) } just Runs
-        every { paymentService.savePayment(any()) } returns payment
+        every { pointHistoryService.savePointHistory(userModel, seatPrice, TransactionType.USE) } just Runs
+        every { paymentService.savePayment(any()) } returns paymentModel
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
         every { queueTokenService.expireQueueToken(any()) } returns mockk(relaxed = true)
 
@@ -93,7 +92,7 @@ class PaymentFacadeTest {
         verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { reservationService.findById(reservationId) }
         verify(exactly = 1) { pointService.usePoint(userId, seatPrice) }
-        verify(exactly = 1) { pointHistoryService.savePointHistory(user, seatPrice, TransactionType.USE) }
+        verify(exactly = 1) { pointHistoryService.savePointHistory(userModel, seatPrice, TransactionType.USE) }
         verify(exactly = 1) { paymentService.savePayment(any()) }
     }
 
@@ -124,13 +123,13 @@ class PaymentFacadeTest {
         val reservationId = 1L
         val queueToken = "test-queue-token"
 
-        val user = User.create("testUser", "test@test.com", "password")
-        val reservation = spyk(Reservation.create(userId, 1L))
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
+        val reservationModel = spyk(ReservationModel.create(userId, 1L))
 
-        every { userService.findById(userId) } returns user
-        every { reservationService.findById(reservationId) } returns reservation
-        every { reservation.validateOwnership(userId) } just Runs
-        every { reservation.validatePayable() } throws BusinessException(kr.hhplus.be.server.common.exception.ErrorCode.RESERVATION_ALREADY_CONFIRMED)
+        every { userService.findById(userId) } returns userModel
+        every { reservationService.findById(reservationId) } returns reservationModel
+        every { reservationModel.validateOwnership(userId) } just Runs
+        every { reservationModel.validatePayable() } throws BusinessException(kr.hhplus.be.server.common.exception.ErrorCode.RESERVATION_ALREADY_CONFIRMED)
 
         // when & then
         assertThatThrownBy {
@@ -152,16 +151,16 @@ class PaymentFacadeTest {
         val seatPrice = 50000
         val queueToken = "test-queue-token"
 
-        val user = User.create("testUser", "test@test.com", "password")
-        val reservation = spyk(Reservation.create(userId, seatId))
-        val seat = spyk(Seat.create(1L, 1, seatPrice))
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
+        val reservationModel = spyk(ReservationModel.create(userId, seatId))
+        val seatModel = spyk(SeatModel.create(1L, 1, seatPrice))
 
-        every { userService.findById(userId) } returns user
-        every { reservationService.findById(reservationId) } returns reservation
-        every { reservation.validateOwnership(userId) } just Runs
-        every { reservation.validatePayable() } just Runs
-        every { reservation.seatId } returns seatId
-        every { seatService.findById(seatId) } returns seat
+        every { userService.findById(userId) } returns userModel
+        every { reservationService.findById(reservationId) } returns reservationModel
+        every { reservationModel.validateOwnership(userId) } just Runs
+        every { reservationModel.validatePayable() } just Runs
+        every { reservationModel.seatId } returns seatId
+        every { seatService.findById(seatId) } returns seatModel
         every { pointService.usePoint(userId, seatPrice) } throws BusinessException(kr.hhplus.be.server.common.exception.ErrorCode.INSUFFICIENT_POINTS)
 
         // when & then

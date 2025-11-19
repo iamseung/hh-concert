@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.domain.user.repository
 
-import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.model.UserModel
 
 interface UserRepository {
-    fun save(user: User): User
-    fun findById(id: Long): User?
-    fun findByIdOrThrow(id: Long): User
-    fun findByEmail(email: String): User?
+    fun save(userModel: UserModel): UserModel
+    fun findById(id: Long): UserModel?
+    fun findByIdOrThrow(id: Long): UserModel
+    fun findByEmail(email: String): UserModel?
     fun existsByEmail(email: String): Boolean
 }

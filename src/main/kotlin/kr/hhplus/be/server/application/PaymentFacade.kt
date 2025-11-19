@@ -2,7 +2,7 @@ package kr.hhplus.be.server.application
 
 import kr.hhplus.be.server.api.dto.response.PaymentResponse
 import kr.hhplus.be.server.domain.concert.service.SeatService
-import kr.hhplus.be.server.domain.payment.model.Payment
+import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.service.PaymentService
 import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.domain.point.service.PointHistoryService
@@ -37,10 +37,9 @@ class PaymentFacade(
         pointService.usePoint(userId, seat.price)
         pointHistoryService.savePointHistory(user, seat.price, TransactionType.USE)
 
-        val payment = paymentService.savePayment(Payment.create(reservationId, userId, seat.price))
+        val paymentModel = paymentService.savePayment(PaymentModel.create(reservationId, userId, seat.price))
 
         seat.confirmReservation()
-        seatService.save(seat)
 
         reservation.confirmPayment()
         reservationService.save(reservation)
@@ -48,6 +47,6 @@ class PaymentFacade(
         val token = queueTokenService.getQueueTokenByToken(queueToken)
         queueTokenService.expireQueueToken(token)
 
-        return PaymentResponse.from(payment)
+        return PaymentResponse.from(paymentModel)
     }
 }

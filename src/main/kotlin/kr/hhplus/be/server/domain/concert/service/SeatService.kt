@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.domain.concert.service
 
-import kr.hhplus.be.server.common.exception.BusinessException
-import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.concert.model.Seat
+import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.repository.SeatRepository
 import org.springframework.stereotype.Service
 
@@ -10,28 +8,18 @@ import org.springframework.stereotype.Service
 class SeatService(
     private val seatRepository: SeatRepository,
 ) {
-    fun findByIdAndConcertScheduleId(seatId: Long, scheduleId: Long): Seat {
-        return seatRepository.findByIdOrThrow(seatId)
-    }
-
-    fun findByIdAndConcertScheduleIdWithLock(seatId: Long, scheduleId: Long): Seat {
+    fun findByIdAndConcertScheduleIdWithLock(seatId: Long, scheduleId: Long): SeatModel {
         val seat = seatRepository.findByIdWithLock(seatId)
-            ?: throw BusinessException(ErrorCode.SEAT_NOT_FOUND)
-        if (seat.concertScheduleId != scheduleId) {
-            throw BusinessException(ErrorCode.SEAT_NOT_FOUND)
-        }
+        seat.validateMatch(scheduleId)
+
         return seat
     }
 
-    fun findById(seatId: Long): Seat {
+    fun findById(seatId: Long): SeatModel {
         return seatRepository.findByIdOrThrow(seatId)
     }
 
-    fun findAllByConcertScheduleId(scheduleId: Long): List<Seat> {
+    fun findAllByConcertScheduleId(scheduleId: Long): List<SeatModel> {
         return seatRepository.findAllByConcertScheduleId(scheduleId)
-    }
-
-    fun save(seat: Seat): Seat {
-        return seatRepository.save(seat)
     }
 }

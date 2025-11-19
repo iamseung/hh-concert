@@ -1,14 +1,14 @@
 package kr.hhplus.be.server.domain.reservation.repository
 
-import kr.hhplus.be.server.domain.reservation.model.Reservation
+import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 
 interface ReservationRepository {
-    fun save(reservation: Reservation): Reservation
-    fun findById(id: Long): Reservation?
-    fun findByIdOrThrow(id: Long): Reservation
-    fun findByUserIdAndSeatId(userId: Long, seatId: Long): Reservation?
-    fun findAllByUserId(userId: Long): List<Reservation>
-    fun findAllByStatus(status: ReservationStatus): List<Reservation>
-    fun findExpiredReservations(): List<Reservation>
+    fun save(reservationModel: ReservationModel): ReservationModel
+    fun findById(id: Long): ReservationModel?
+    fun findByIdOrThrow(id: Long): ReservationModel
+    fun findByUserIdAndSeatId(userId: Long, seatId: Long): ReservationModel?
+    fun findAllByUserId(userId: Long): List<ReservationModel>
+    fun findAllByStatus(status: ReservationStatus): List<ReservationModel>
+    fun findExpiredReservations(): List<ReservationModel>
 }

@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.api.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.domain.reservation.model.Reservation
+import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 
 @Schema(description = "예약 응답")
 data class ReservationResponse(
@@ -18,13 +18,13 @@ data class ReservationResponse(
 ) {
 
     companion object {
-        fun from(reservation: Reservation): ReservationResponse {
+        fun from(reservationModel: ReservationModel): ReservationResponse {
             return ReservationResponse(
-                id = reservation.id,
-                seatId = reservation.seatId,
-                reservationStatus = reservation.reservationStatus.name,
-                temporaryReservedAt = reservation.temporaryReservedAt.toString(),
-                temporaryExpiresAt = reservation.temporaryExpiredAt.toString(),
+                id = reservationModel.id,
+                seatId = reservationModel.seatId,
+                reservationStatus = reservationModel.reservationStatus.name,
+                temporaryReservedAt = reservationModel.temporaryReservedAt.toString(),
+                temporaryExpiresAt = reservationModel.temporaryExpiredAt.toString(),
             )
         }
     }

@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.api.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
-import kr.hhplus.be.server.domain.concert.model.ConcertSchedule
+import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import java.time.format.DateTimeFormatter
 
 @Schema(description = "콘서트 일정 응답")
@@ -17,7 +17,7 @@ data class ConcertScheduleResponse(
     companion object {
         private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-        fun from(schedule: ConcertSchedule): ConcertScheduleResponse {
+        fun from(schedule: ConcertScheduleModel): ConcertScheduleResponse {
             return ConcertScheduleResponse(
                 id = schedule.id,
                 concertId = schedule.concertId,

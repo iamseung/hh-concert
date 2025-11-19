@@ -4,11 +4,11 @@ import io.mockk.*
 import kr.hhplus.be.server.application.PointFacade
 import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.domain.point.model.Point
+import kr.hhplus.be.server.domain.point.model.PointModel
 import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
-import kr.hhplus.be.server.domain.user.model.User
+import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -41,11 +41,11 @@ class PointFacadeTest {
     fun getPoints_Success() {
         // given
         val userId = 1L
-        val user = User.create("testUser", "test@test.com", "password")
-        val point = Point.create(userId, 50000)
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
+        val pointModel = PointModel.create(userId, 50000)
 
-        every { userService.findById(userId) } returns user
-        every { pointService.getPointByUserId(userId) } returns point
+        every { userService.findById(userId) } returns userModel
+        every { pointService.getPointByUserId(userId) } returns pointModel
 
         // when
         val result = pointFacade.getPoints(userId)
@@ -63,12 +63,12 @@ class PointFacadeTest {
         // given
         val userId = 1L
         val amount = 10000
-        val user = User.create("testUser", "test@test.com", "password")
-        val chargedPoint = Point.create(userId, 60000)
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
+        val chargedPointModel = PointModel.create(userId, 60000)
 
-        every { userService.findById(userId) } returns user
-        every { pointService.chargePoint(userId, amount) } returns chargedPoint
-        every { pointHistoryService.savePointHistory(user, amount, TransactionType.CHARGE) } just Runs
+        every { userService.findById(userId) } returns userModel
+        every { pointService.chargePoint(userId, amount) } returns chargedPointModel
+        every { pointHistoryService.savePointHistory(userModel, amount, TransactionType.CHARGE) } just Runs
 
         // when
         val result = pointFacade.chargePoint(userId, amount)
@@ -78,7 +78,7 @@ class PointFacadeTest {
         assertThat(result.balance).isEqualTo(60000)
         verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { pointService.chargePoint(userId, amount) }
-        verify(exactly = 1) { pointHistoryService.savePointHistory(user, amount, TransactionType.CHARGE) }
+        verify(exactly = 1) { pointHistoryService.savePointHistory(userModel, amount, TransactionType.CHARGE) }
     }
 
     @Test
@@ -87,9 +87,9 @@ class PointFacadeTest {
         // given
         val userId = 1L
         val amount = -1000
-        val user = User.create("testUser", "test@test.com", "password")
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
 
-        every { userService.findById(userId) } returns user
+        every { userService.findById(userId) } returns userModel
         every { pointService.chargePoint(userId, amount) } throws BusinessException(ErrorCode.INVALID_CHARGE_AMOUNT)
 
         // when & then
@@ -109,9 +109,9 @@ class PointFacadeTest {
         // given
         val userId = 1L
         val amount = 0
-        val user = User.create("testUser", "test@test.com", "password")
+        val userModel = UserModel.create("testUser", "test@test.com", "password")
 
-        every { userService.findById(userId) } returns user
+        every { userService.findById(userId) } returns userModel
         every { pointService.chargePoint(userId, amount) } throws BusinessException(ErrorCode.INVALID_CHARGE_AMOUNT)
 
         // when & then
