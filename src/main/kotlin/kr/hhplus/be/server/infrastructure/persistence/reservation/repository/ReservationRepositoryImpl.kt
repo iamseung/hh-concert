@@ -43,19 +43,7 @@ class ReservationRepositoryImpl(
         return findById(id) ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
     }
 
-    override fun findByUserIdAndSeatId(userId: Long, seatId: Long): ReservationModel? {
-        return reservationJpaRepository.findByUserIdAndSeatId(userId, seatId)?.toModel()
-    }
-
     override fun findAllByUserId(userId: Long): List<ReservationModel> {
         return reservationJpaRepository.findAllByUserId(userId).map { it.toModel() }
-    }
-
-    override fun findAllByStatus(status: ReservationStatus): List<ReservationModel> {
-        return reservationJpaRepository.findAllByReservationStatus(status).map { it.toModel() }
-    }
-
-    override fun findExpiredReservations(): List<ReservationModel> {
-        return reservationJpaRepository.findExpiredReservations(LocalDateTime.now()).map { it.toModel() }
     }
 }

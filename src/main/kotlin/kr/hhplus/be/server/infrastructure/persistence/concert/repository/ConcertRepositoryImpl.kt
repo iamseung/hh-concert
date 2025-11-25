@@ -4,7 +4,6 @@ import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.concert.model.ConcertModel
 import kr.hhplus.be.server.domain.concert.repository.ConcertRepository
-import kr.hhplus.be.server.infrastructure.persistence.concert.entity.Concert
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
@@ -12,20 +11,6 @@ import org.springframework.stereotype.Repository
 class ConcertRepositoryImpl(
     private val concertJpaRepository: ConcertJpaRepository,
 ) : ConcertRepository {
-
-    override fun save(concertModel: ConcertModel): ConcertModel {
-        val entity = if (concertModel.id != 0L) {
-            // 기존 엔티티 조회 후 업데이트
-            concertJpaRepository.findByIdOrNull(concertModel.id)?.apply {
-                updateFromDomain(concertModel)
-            } ?: throw BusinessException(ErrorCode.CONCERT_NOT_FOUND)
-        } else {
-            // 새로운 엔티티 생성
-            Concert.fromDomain(concertModel)
-        }
-        val saved = concertJpaRepository.save(entity)
-        return saved.toModel()
-    }
 
     override fun findById(id: Long): ConcertModel? {
         return concertJpaRepository.findByIdOrNull(id)?.toModel()

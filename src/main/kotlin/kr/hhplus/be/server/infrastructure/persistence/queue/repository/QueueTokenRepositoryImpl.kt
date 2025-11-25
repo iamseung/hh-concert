@@ -35,10 +35,6 @@ class QueueTokenRepositoryImpl(
         return queueTokenJpaRepository.findByIdOrNull(id)?.toModel()
     }
 
-    override fun findByIdOrThrow(id: Long): QueueTokenModel {
-        return findById(id) ?: throw BusinessException(ErrorCode.QUEUE_TOKEN_NOT_FOUND)
-    }
-
     override fun findByToken(token: String): QueueTokenModel? {
         return queueTokenJpaRepository.findByToken(token)?.toModel()
     }
@@ -49,10 +45,6 @@ class QueueTokenRepositoryImpl(
 
     override fun findAllByStatus(status: QueueStatus): List<QueueTokenModel> {
         return queueTokenJpaRepository.findAllByQueueStatusOrderByCreatedAtAsc(status).map { it.toModel() }
-    }
-
-    override fun findTopWaitingTokens(limit: Int): List<QueueTokenModel> {
-        return queueTokenJpaRepository.findTopWaitingTokens(limit).map { it.toModel() }
     }
 
     override fun countByStatus(status: QueueStatus): Long {
