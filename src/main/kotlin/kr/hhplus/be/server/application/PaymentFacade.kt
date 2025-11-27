@@ -27,17 +27,17 @@ class PaymentFacade(
 
     fun processPayment(userId: Long, reservationId: Long, queueToken: String): PaymentResponse {
         val user = userService.findById(userId)
-        val reservation = reservationService.findById(reservationId)
 
-        reservation.validateOwnership(userId)
+        val reservation = reservationService.findById(reservationId)
+        reservation.validateOwnership(user.id)
         reservation.validatePayable()
 
         val seat = seatService.findById(reservation.seatId)
 
-        pointService.usePoint(userId, seat.price)
-        pointHistoryService.savePointHistory(user, seat.price, TransactionType.USE)
+        pointService.usePoint(user.id, seat.price)
+        pointHistoryService.savePointHistory(user.id, seat.price, TransactionType.USE)
 
-        val paymentModel = paymentService.savePayment(PaymentModel.create(reservationId, userId, seat.price))
+        val paymentModel = paymentService.savePayment(PaymentModel.create(reservationId, user.id, seat.price))
 
         seat.confirmReservation()
 

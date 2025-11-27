@@ -21,8 +21,8 @@ class ReservationFacade(
 
     @Transactional(readOnly = true)
     fun getConcertReservations(userId: Long): List<ReservationResponse> {
-        userService.findById(userId)
-        val reservations = reservationService.findAllByUserId(userId)
+        val user = userService.findById(userId)
+        val reservations = reservationService.findAllByUserId(user.id)
 
         return reservations.map { ReservationResponse.from(it) }
     }
@@ -37,14 +37,14 @@ class ReservationFacade(
         val token = queueTokenService.getQueueTokenByToken(queueToken)
         token.validateActive()
 
-        userService.findById(userId)
+        val user = userService.findById(userId)
         val schedule = concertScheduleService.findById(scheduleId)
         schedule.validateAvailable()
 
         val seat = seatService.findByIdAndConcertScheduleIdWithLock(seatId, schedule.id)
         seat.temporaryReservation()
 
-        val reservationModel = reservationService.save(ReservationModel.create(userId, seat.id))
-        return ReservationResponse.from(reservationModel)
+        val reservation = reservationService.save(ReservationModel.create(user.id, seat.id))
+        return ReservationResponse.from(reservation)
     }
 }

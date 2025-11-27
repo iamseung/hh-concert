@@ -78,7 +78,7 @@ class PaymentFacadeTest {
         every { reservationModel.confirmPayment() } just Runs
         every { reservationService.save(reservationModel) } returns reservationModel
         every { pointService.usePoint(userId, seatPrice) } returns mockk()
-        every { pointHistoryService.savePointHistory(userModel, seatPrice, TransactionType.USE) } just Runs
+        every { pointHistoryService.savePointHistory(userId, seatPrice, TransactionType.USE) } just Runs
         every { paymentService.savePayment(any()) } returns paymentModel
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
         every { queueTokenService.expireQueueToken(any()) } returns mockk(relaxed = true)
@@ -92,7 +92,7 @@ class PaymentFacadeTest {
         verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { reservationService.findById(reservationId) }
         verify(exactly = 1) { pointService.usePoint(userId, seatPrice) }
-        verify(exactly = 1) { pointHistoryService.savePointHistory(userModel, seatPrice, TransactionType.USE) }
+        verify(exactly = 1) { pointHistoryService.savePointHistory(userId, seatPrice, TransactionType.USE) }
         verify(exactly = 1) { paymentService.savePayment(any()) }
     }
 

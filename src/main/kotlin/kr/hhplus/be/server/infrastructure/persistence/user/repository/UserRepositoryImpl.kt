@@ -14,14 +14,8 @@ class UserRepositoryImpl(
 ) : UserRepository {
 
     override fun save(userModel: UserModel): UserModel {
-        val entity = if (userModel.id != 0L) {
-            userJpaRepository.findByIdOrNull(userModel.id)?.apply {
-                updateFromDomain(userModel)
-            } ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
-        } else {
-            User.fromDomain(userModel)
-        }
-        val saved = userJpaRepository.save(entity)
+        val user = User.fromDomain(userModel)
+        val saved = userJpaRepository.save(user)
         return saved.toModel()
     }
 

@@ -6,7 +6,6 @@ import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.entity.QueueToken
-import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -14,20 +13,11 @@ import java.time.LocalDateTime
 @Repository
 class QueueTokenRepositoryImpl(
     private val queueTokenJpaRepository: QueueTokenJpaRepository,
-    private val userJpaRepository: UserJpaRepository,
 ) : QueueTokenRepository {
 
     override fun save(queueTokenModel: QueueTokenModel): QueueTokenModel {
-        val entity = if (queueTokenModel.id != 0L) {
-            queueTokenJpaRepository.findByIdOrNull(queueTokenModel.id)?.apply {
-                updateFromDomain(queueTokenModel)
-            } ?: throw BusinessException(ErrorCode.QUEUE_TOKEN_NOT_FOUND)
-        } else {
-            val user = userJpaRepository.findByIdOrNull(queueTokenModel.userId)
-                ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
-            QueueToken.fromDomain(queueTokenModel, user)
-        }
-        val saved = queueTokenJpaRepository.save(entity)
+        val queueToken = QueueToken.fromDomain(queueTokenModel)
+        val saved = queueTokenJpaRepository.save(queueToken)
         return saved.toModel()
     }
 

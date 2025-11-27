@@ -68,7 +68,7 @@ class PointFacadeTest {
 
         every { userService.findById(userId) } returns userModel
         every { pointService.chargePoint(userId, amount) } returns chargedPointModel
-        every { pointHistoryService.savePointHistory(userModel, amount, TransactionType.CHARGE) } just Runs
+        every { pointHistoryService.savePointHistory(userId, amount, TransactionType.CHARGE) } just Runs
 
         // when
         val result = pointFacade.chargePoint(userId, amount)
@@ -78,7 +78,7 @@ class PointFacadeTest {
         assertThat(result.balance).isEqualTo(60000)
         verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { pointService.chargePoint(userId, amount) }
-        verify(exactly = 1) { pointHistoryService.savePointHistory(userModel, amount, TransactionType.CHARGE) }
+        verify(exactly = 1) { pointHistoryService.savePointHistory(userId, amount, TransactionType.CHARGE) }
     }
 
     @Test

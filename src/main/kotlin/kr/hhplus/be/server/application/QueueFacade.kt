@@ -15,8 +15,8 @@ class QueueFacade(
 ) {
 
     fun issueQueueToken(userId: Long): QueueTokenResponse {
-        userService.findById(userId)
-        val queueToken = queueTokenService.createQueueToken(userId)
+        val user = userService.findById(userId)
+        val queueToken = queueTokenService.createQueueToken(user.id)
 
         return QueueTokenResponse.from(queueToken)
     }
