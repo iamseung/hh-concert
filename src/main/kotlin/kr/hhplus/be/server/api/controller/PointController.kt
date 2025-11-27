@@ -10,7 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.ChargePointRequest
 import kr.hhplus.be.server.api.dto.response.PointResponse
-import kr.hhplus.be.server.application.PointFacade
+import kr.hhplus.be.server.application.usecase.point.ChargePointCommand
+import kr.hhplus.be.server.application.usecase.point.ChargePointUseCase
+import kr.hhplus.be.server.application.usecase.point.GetPointCommand
+import kr.hhplus.be.server.application.usecase.point.GetPointUseCase
 import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,7 +26,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Points", description = "포인트 충전 및 조회")
 class PointController(
-    private val pointService: PointFacade,
+    private val getPointUseCase: GetPointUseCase,
+    private val chargePointUseCase: ChargePointUseCase,
 ) {
 
     @Operation(
@@ -60,7 +64,13 @@ class PointController(
         @Parameter(description = "사용자 ID", required = true, `in` = ParameterIn.QUERY)
         @RequestParam userId: Long,
     ): PointResponse {
-        return pointService.getPoints(userId)
+        val command = GetPointCommand(userId = userId)
+        val result = getPointUseCase.execute(command)
+
+        return PointResponse(
+            userId = result.userId,
+            balance = result.balance
+        )
     }
 
     @Operation(
@@ -105,7 +115,16 @@ class PointController(
     @PostMapping("/points/charge")
     fun chargePoint(
         @RequestBody request: ChargePointRequest,
-    ) {
-        pointService.chargePoint(request.userId, request.amount)
+    ): PointResponse {
+        val command = ChargePointCommand(
+            userId = request.userId,
+            amount = request.amount
+        )
+        val result = chargePointUseCase.execute(command)
+
+        return PointResponse(
+            userId = result.userId,
+            balance = result.balance
+        )
     }
 }
