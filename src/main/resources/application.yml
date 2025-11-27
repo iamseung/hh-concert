@@ -39,7 +39,7 @@ springdoc:
   override-with-generic-response: false
 
 ---
-spring.config.activate.on-profile: local, test
+spring.config.activate.on-profile: local
 
 spring:
   datasource:

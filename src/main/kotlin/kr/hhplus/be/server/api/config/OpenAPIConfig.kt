@@ -1,6 +1,7 @@
-package kr.hhplus.be.server.config
+package kr.hhplus.be.server.api.config
 
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.parser.OpenAPIV3Parser
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -43,10 +44,10 @@ class OpenAPIConfig {
     private fun createDefaultOpenAPI(): OpenAPI {
         return OpenAPI()
             .info(
-                io.swagger.v3.oas.models.info.Info()
+                Info()
                     .title("Kotlin Server API")
                     .description("API 명세는 docs/openapi.yml 파일에서 관리됩니다")
-                    .version("1.0.0")
+                    .version("1.0.0"),
             )
     }
 }
