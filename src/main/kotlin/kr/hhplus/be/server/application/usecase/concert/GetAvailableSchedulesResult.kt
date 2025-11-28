@@ -8,8 +8,6 @@ data class GetAvailableSchedulesResult(
     data class ScheduleInfo(
         val scheduleId: Long,
         val concertId: Long,
-        val concertDate: LocalDate,
-        val totalSeats: Int,
-        val availableSeats: Int
+        val concertDate: LocalDate
     )
 }

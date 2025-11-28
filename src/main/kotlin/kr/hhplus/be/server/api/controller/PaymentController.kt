@@ -84,7 +84,7 @@ class PaymentController(
             reservationId = result.reservationId,
             userId = result.userId,
             amount = result.amount,
-            paymentDate = result.paymentDate
+            paymentStatus = kr.hhplus.be.server.domain.payment.model.PaymentStatus.PENDING
         )
     }
 }

@@ -43,8 +43,8 @@ class CreateReservationUseCase(
             reservationId = reservation.id,
             userId = reservation.userId,
             seatId = reservation.seatId,
-            status = reservation.status,
-            reservedAt = reservation.reservedAt
+            status = reservation.reservationStatus,
+            reservedAt = reservation.temporaryReservedAt
         )
     }
 }

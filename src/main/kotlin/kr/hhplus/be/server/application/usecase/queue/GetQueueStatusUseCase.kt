@@ -17,8 +17,8 @@ class GetQueueStatusUseCase(
         // 2. 결과 반환
         return GetQueueStatusResult(
             token = queueToken.token,
-            status = queueToken.status,
-            position = queueToken.position
+            status = queueToken.queueStatus,
+            position = queueToken.queuePosition.toLong()
         )
     }
 }

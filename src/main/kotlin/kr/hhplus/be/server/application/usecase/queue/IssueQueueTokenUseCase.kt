@@ -22,8 +22,8 @@ class IssueQueueTokenUseCase(
         // 3. 결과 반환
         return IssueQueueTokenResult(
             token = queueToken.token,
-            status = queueToken.status,
-            position = queueToken.position,
+            status = queueToken.queueStatus,
+            position = queueToken.queuePosition.toLong(),
             createdAt = queueToken.createdAt
         )
     }

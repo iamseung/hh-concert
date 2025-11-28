@@ -77,10 +77,15 @@ class QueueController(
         val command = IssueQueueTokenCommand(userId = request.userId)
         val result = issueQueueTokenUseCase.execute(command)
         return QueueTokenResponse(
+            id = null,
+            userId = request.userId,
             token = result.token,
-            status = result.status.name,
-            position = result.position,
-            estimatedWaitTimeMinutes = 0
+            queueStatus = result.status,
+            queuePosition = result.position.toInt(),
+            activatedAt = null,
+            expiresAt = null,
+            createdAt = result.createdAt,
+            updatedAt = result.createdAt
         )
     }
 
@@ -136,10 +141,15 @@ class QueueController(
     ): QueueStatusResponse {
         val command = GetQueueStatusCommand(token = queueToken)
         val result = getQueueStatusUseCase.execute(command)
+        val estimatedTime = if (result.status == kr.hhplus.be.server.domain.queue.model.QueueStatus.WAITING) {
+            result.position.toInt()
+        } else {
+            0
+        }
         return QueueStatusResponse(
-            token = result.token,
-            status = result.status.name,
-            position = result.position
+            queuePosition = result.position.toInt(),
+            queueStatus = result.status,
+            estimatedWaitTimeMinutes = estimatedTime
         )
     }
 }

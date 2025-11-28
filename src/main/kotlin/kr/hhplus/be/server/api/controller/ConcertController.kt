@@ -66,10 +66,9 @@ class ConcertController(
         val result = getAvailableSchedulesUseCase.execute(command)
         return result.schedules.map { schedule ->
             ConcertScheduleResponse(
-                scheduleId = schedule.scheduleId,
-                concertDate = schedule.concertDate.toString(),
-                totalSeats = schedule.totalSeats,
-                availableSeats = schedule.availableSeats
+                id = schedule.scheduleId,
+                concertId = schedule.concertId,
+                concertDate = schedule.concertDate.toString()
             )
         }
     }
@@ -115,10 +114,11 @@ class ConcertController(
         val result = getAvailableSeatsUseCase.execute(command)
         return result.seats.map { seat ->
             SeatResponse(
-                seatId = seat.seatId,
+                id = seat.seatId,
+                scheduleId = seat.concertScheduleId,
                 seatNumber = seat.seatNumber,
-                price = seat.price,
-                status = seat.status.name
+                seatStatus = seat.status,
+                price = seat.price
             )
         }
     }

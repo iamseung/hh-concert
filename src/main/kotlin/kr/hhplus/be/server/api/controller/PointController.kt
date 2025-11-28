@@ -68,6 +68,7 @@ class PointController(
         val result = getPointUseCase.execute(command)
 
         return PointResponse(
+            id = null,
             userId = result.userId,
             balance = result.balance
         )
@@ -123,6 +124,7 @@ class PointController(
         val result = chargePointUseCase.execute(command)
 
         return PointResponse(
+            id = null,
             userId = result.userId,
             balance = result.balance
         )
