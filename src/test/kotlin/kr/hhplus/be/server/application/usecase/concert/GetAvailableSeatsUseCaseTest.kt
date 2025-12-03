@@ -6,6 +6,7 @@ import io.mockk.verify
 import kr.hhplus.be.server.domain.concert.model.ConcertModel
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import kr.hhplus.be.server.domain.concert.model.SeatModel
+import kr.hhplus.be.server.domain.concert.model.SeatStatus
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.ConcertService
 import kr.hhplus.be.server.domain.concert.service.SeatService
@@ -62,7 +63,7 @@ class GetAvailableSeatsUseCaseTest {
             concertScheduleId = scheduleId,
             seatNumber = 1,
             price = 100000,
-            seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE,
+            seatStatus = SeatStatus.AVAILABLE,
             createdAt = java.time.LocalDateTime.now(),
             updatedAt = java.time.LocalDateTime.now(),
         )
@@ -71,7 +72,7 @@ class GetAvailableSeatsUseCaseTest {
             concertScheduleId = scheduleId,
             seatNumber = 2,
             price = 100000,
-            seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE,
+            seatStatus = SeatStatus.AVAILABLE,
             createdAt = java.time.LocalDateTime.now(),
             updatedAt = java.time.LocalDateTime.now(),
         )

@@ -12,6 +12,7 @@ import kr.hhplus.be.server.application.usecase.queue.GetQueueStatusCommand
 import kr.hhplus.be.server.application.usecase.queue.GetQueueStatusUseCase
 import kr.hhplus.be.server.application.usecase.queue.IssueQueueTokenCommand
 import kr.hhplus.be.server.application.usecase.queue.IssueQueueTokenUseCase
+import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -77,7 +78,7 @@ class QueueController(
     ): QueueStatusResponse {
         val command = GetQueueStatusCommand(token = queueToken)
         val result = getQueueStatusUseCase.execute(command)
-        val estimatedTime = if (result.status == kr.hhplus.be.server.domain.queue.model.QueueStatus.WAITING) {
+        val estimatedTime = if (result.status == QueueStatus.WAITING) {
             result.position
         } else {
             0L

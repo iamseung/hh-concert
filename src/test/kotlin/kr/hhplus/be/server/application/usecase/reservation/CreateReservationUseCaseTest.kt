@@ -5,11 +5,14 @@ import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import kr.hhplus.be.server.domain.concert.model.SeatModel
+import kr.hhplus.be.server.domain.concert.model.SeatStatus
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.SeatService
+import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
+import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
@@ -80,7 +83,7 @@ class CreateReservationUseCaseTest {
             concertScheduleId = scheduleId,
             seatNumber = 1,
             price = 100000,
-            seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE,
+            seatStatus = SeatStatus.AVAILABLE,
             createdAt = java.time.LocalDateTime.now(),
             updatedAt = java.time.LocalDateTime.now(),
         )
@@ -88,7 +91,7 @@ class CreateReservationUseCaseTest {
             id = 1L,
             userId = userId,
             seatId = seatId,
-            reservationStatus = kr.hhplus.be.server.domain.reservation.model.ReservationStatus.TEMPORARY,
+            reservationStatus = ReservationStatus.TEMPORARY,
             temporaryReservedAt = java.time.LocalDateTime.now(),
             temporaryExpiredAt = java.time.LocalDateTime.now().plusMinutes(5),
             createdAt = java.time.LocalDateTime.now(),
@@ -97,7 +100,7 @@ class CreateReservationUseCaseTest {
         val token = QueueTokenModel.reconstitute(
             userId = userId,
             token = queueToken,
-            queueStatus = kr.hhplus.be.server.domain.queue.model.QueueStatus.ACTIVE,
+            queueStatus = QueueStatus.ACTIVE,
             activatedAt = java.time.LocalDateTime.now(),
             expiresAt = java.time.LocalDateTime.now().plusMinutes(10),
             createdAt = java.time.LocalDateTime.now(),

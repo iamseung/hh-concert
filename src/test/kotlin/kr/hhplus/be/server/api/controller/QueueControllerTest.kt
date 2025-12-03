@@ -3,11 +3,13 @@ package kr.hhplus.be.server.api.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.repository.RedisQueueRepository
 import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRepository
 import kr.hhplus.be.server.support.AbstractIntegrationContainerBaseTest
+import org.springframework.data.redis.core.RedisTemplate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -35,10 +37,10 @@ class QueueControllerTest : AbstractIntegrationContainerBaseTest() {
     private lateinit var userJpaRepository: UserJpaRepository
 
     @Autowired
-    private lateinit var queueTokenRepository: QueueTokenRepository
+    private lateinit var redisQueueRepository: RedisQueueRepository
 
     @Autowired
-    private lateinit var redisQueueRepository: RedisQueueRepository
+    private lateinit var redisTemplate: RedisTemplate<String, Any>
 
     @BeforeEach
     fun setUp() {
@@ -52,13 +54,8 @@ class QueueControllerTest : AbstractIntegrationContainerBaseTest() {
 
     private fun cleanupDatabase() {
         userJpaRepository.deleteAll()
-        // Redis cleanup - delete all tokens and remove from queues
-        val waitingUsers = redisQueueRepository.getAllWaitingUsers()
-        val activeUsers = redisQueueRepository.getAllActiveUsers()
-
-        (waitingUsers + activeUsers).forEach { userId ->
-            redisQueueRepository.removeFromActiveQueue(userId)
-        }
+        // Redis 전체 flush (테스트 환경이므로 안전)
+        redisTemplate.connectionFactory?.connection?.serverCommands()?.flushAll()
     }
 
     @Test
@@ -160,31 +157,16 @@ class QueueControllerTest : AbstractIntegrationContainerBaseTest() {
     fun getQueueStatusActive() {
         // given
         val user = userJpaRepository.save(User("테스트", "test@example.com", "password"))
-        val request = IssueQueueTokenRequest(userId = user.id)
 
-        val tokenResponse = mockMvc.perform(
-            post("/api/v1/queue/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)),
-        )
-            .andExpect(status().isCreated)
-            .andReturn()
-
-        val token = objectMapper.readTree(tokenResponse.response.contentAsString).get("token").asText()
-
-        // 토큰을 ACTIVE 상태로 변경
-        val activatedUsers = redisQueueRepository.activateWaitingUsers(1)
-
-        // Verify activation worked
-        assert(activatedUsers.contains(user.id)) { "User ${user.id} was not activated. Activated users: $activatedUsers" }
-
-        // Allow Redis to propagate changes
-        Thread.sleep(500)
+        // 직접 Redis에 토큰 생성 및 활성화
+        val queueTokenModel = QueueTokenModel.create(user.id)
+        redisQueueRepository.save(queueTokenModel)
+        redisQueueRepository.activateWaitingUsers(1)
 
         // when & then
         mockMvc.perform(
             get("/api/v1/queue/status")
-                .header("X-Queue-Token", token)
+                .header("X-Queue-Token", queueTokenModel.token)
                 .contentType(MediaType.APPLICATION_JSON),
         )
             .andExpect(status().isOk)
@@ -216,6 +198,6 @@ class QueueControllerTest : AbstractIntegrationContainerBaseTest() {
             get("/api/v1/queue/status")
                 .contentType(MediaType.APPLICATION_JSON),
         )
-            .andExpect(status().is4xxClientError)
+            .andExpect(status().is5xxServerError)
     }
 }

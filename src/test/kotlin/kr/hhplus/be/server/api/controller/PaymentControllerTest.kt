@@ -6,6 +6,8 @@ import kr.hhplus.be.server.api.dto.request.CreateReservationRequest
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
 import kr.hhplus.be.server.api.dto.request.ProcessPaymentRequest
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
+import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.infrastructure.persistence.concert.entity.Concert
 import kr.hhplus.be.server.infrastructure.persistence.point.entity.Point
 import kr.hhplus.be.server.infrastructure.persistence.point.repository.PointJpaRepository
@@ -16,10 +18,12 @@ import kr.hhplus.be.server.infrastructure.persistence.concert.repository.Concert
 import kr.hhplus.be.server.infrastructure.persistence.concert.repository.SeatJpaRepository
 import kr.hhplus.be.server.infrastructure.persistence.payment.repository.PaymentJpaRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.repository.RedisQueueRepository
+import kr.hhplus.be.server.infrastructure.persistence.reservation.entity.Reservation
 import kr.hhplus.be.server.infrastructure.persistence.reservation.repository.ReservationJpaRepository
 import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRepository
 import kr.hhplus.be.server.support.AbstractIntegrationContainerBaseTest
+import org.springframework.data.redis.core.RedisTemplate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -67,6 +71,9 @@ class PaymentControllerTest : AbstractIntegrationContainerBaseTest() {
     @Autowired
     private lateinit var redisQueueRepository: RedisQueueRepository
 
+    @Autowired
+    private lateinit var redisTemplate: RedisTemplate<String, Any>
+
     @BeforeEach
     fun setUp() {
         cleanupDatabase()
@@ -84,61 +91,40 @@ class PaymentControllerTest : AbstractIntegrationContainerBaseTest() {
         concertScheduleJpaRepository.deleteAll()
         concertJpaRepository.deleteAll()
         userJpaRepository.deleteAll()
-        // Redis cleanup
-        redisQueueRepository.getAllWaitingUsers().forEach { userId ->
-            redisQueueRepository.removeFromActiveQueue(userId)
-        }
-        redisQueueRepository.getAllActiveUsers().forEach { userId ->
-            redisQueueRepository.removeFromActiveQueue(userId)
-        }
+        // Redis 전체 flush (테스트 환경이므로 안전)
+        redisTemplate.connectionFactory?.connection?.serverCommands()?.flushAll()
     }
 
     private fun issueAndActivateToken(userId: Long): String {
-        val request = IssueQueueTokenRequest(userId = userId)
-        val tokenResponse = mockMvc.perform(
-            post("/api/v1/queue/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)),
-        )
-            .andExpect(status().isCreated)
-            .andReturn()
+        // 토큰 생성 및 WAITING 상태로 저장
+        val queueTokenModel = QueueTokenModel.create(userId)
+        redisQueueRepository.save(queueTokenModel)
 
-        val token = objectMapper.readTree(tokenResponse.response.contentAsString).get("token").asText()
-        // 토큰을 ACTIVE 상태로 변경
+        // ACTIVE 상태로 활성화
         redisQueueRepository.activateWaitingUsers(1)
-        // Allow Redis to propagate changes
-        Thread.sleep(500)
-        return token
+
+        return queueTokenModel.token
     }
 
     private fun chargePoints(userId: Long, amount: Int) {
-        pointJpaRepository.save(Point(userId, 0))
-        val chargeRequest = ChargePointRequest(userId = userId, amount = amount)
-        mockMvc.perform(
-            post("/api/v1/points/charge")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(chargeRequest)),
-        )
+        // 직접 DB에 포인트 저장
+        pointJpaRepository.save(Point(userId, amount))
     }
 
     private fun createReservation(userId: Long, concertId: Long, scheduleId: Long, seatId: Long, token: String): Long {
-        val reservationRequest = CreateReservationRequest(
-            userId = userId,
-            scheduleId = scheduleId,
-            seatId = seatId,
-        )
-        val response = mockMvc.perform(
-            post("/api/v1/concerts/{concertId}/reservations", concertId)
-                .header("X-Queue-Token", token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(reservationRequest)),
-        )
-            .andExpect(status().isOk)
-            .andReturn()
+        // 직접 DB에 예약 저장 (API 호출 대신)
+        val seat = seatJpaRepository.findById(seatId).orElseThrow()
+        seat.seatStatus = SeatStatus.TEMPORARY_RESERVED
+        seatJpaRepository.save(seat)
 
-        return objectMapper.readTree(response.response.contentAsString).get("id").asLong()
+        val reservation = Reservation(userId = userId, seatId = seatId)
+        reservation.reservationStatus = ReservationStatus.TEMPORARY
+        val saved = reservationJpaRepository.save(reservation)
+
+        return saved.id
     }
 
+    // TODO
     @Test
     @DisplayName("POST /api/payments - 결제 처리 성공")
     fun processPaymentSuccess() {

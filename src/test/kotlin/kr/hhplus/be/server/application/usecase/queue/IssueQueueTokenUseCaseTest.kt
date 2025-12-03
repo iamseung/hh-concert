@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.usecase.queue
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.user.model.UserModel
@@ -47,7 +48,7 @@ class IssueQueueTokenUseCaseTest {
         val queueToken = QueueTokenModel.reconstitute(
             userId = userId,
             token = "generated-token",
-            queueStatus = kr.hhplus.be.server.domain.queue.model.QueueStatus.WAITING,
+            queueStatus = QueueStatus.WAITING,
             activatedAt = null,
             expiresAt = null,
             createdAt = java.time.LocalDateTime.now(),

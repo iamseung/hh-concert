@@ -8,6 +8,7 @@ import kr.hhplus.be.server.api.dto.request.ProcessPaymentRequest
 import kr.hhplus.be.server.api.dto.response.PaymentResponse
 import kr.hhplus.be.server.application.usecase.payment.ProcessPaymentCommand
 import kr.hhplus.be.server.application.usecase.payment.ProcessPaymentUseCase
+import kr.hhplus.be.server.domain.payment.model.PaymentStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -45,7 +46,7 @@ class PaymentController(
             reservationId = result.reservationId,
             userId = result.userId,
             amount = result.amount,
-            paymentStatus = kr.hhplus.be.server.domain.payment.model.PaymentStatus.PENDING,
+            paymentStatus = PaymentStatus.PENDING,
         )
     }
 }

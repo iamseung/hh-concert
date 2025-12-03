@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.api.dto.request.CreateReservationRequest
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
+import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.infrastructure.persistence.concert.entity.Concert
 import kr.hhplus.be.server.infrastructure.persistence.concert.entity.ConcertSchedule
 import kr.hhplus.be.server.infrastructure.persistence.concert.entity.Seat
@@ -15,6 +16,7 @@ import kr.hhplus.be.server.infrastructure.persistence.reservation.repository.Res
 import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRepository
 import kr.hhplus.be.server.support.AbstractIntegrationContainerBaseTest
+import org.springframework.data.redis.core.RedisTemplate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -57,6 +59,9 @@ class ReservationControllerTest : AbstractIntegrationContainerBaseTest() {
     @Autowired
     private lateinit var redisQueueRepository: RedisQueueRepository
 
+    @Autowired
+    private lateinit var redisTemplate: RedisTemplate<String, Any>
+
     @BeforeEach
     fun setUp() {
         cleanupDatabase()
@@ -73,33 +78,22 @@ class ReservationControllerTest : AbstractIntegrationContainerBaseTest() {
         concertScheduleJpaRepository.deleteAll()
         concertJpaRepository.deleteAll()
         userJpaRepository.deleteAll()
-        // Redis cleanup
-        redisQueueRepository.getAllWaitingUsers().forEach { userId ->
-            redisQueueRepository.removeFromActiveQueue(userId)
-        }
-        redisQueueRepository.getAllActiveUsers().forEach { userId ->
-            redisQueueRepository.removeFromActiveQueue(userId)
-        }
+        // Redis 전체 flush (테스트 환경이므로 안전)
+        redisTemplate.connectionFactory?.connection?.serverCommands()?.flushAll()
     }
 
     private fun issueAndActivateToken(userId: Long): String {
-        val request = IssueQueueTokenRequest(userId = userId)
-        val tokenResponse = mockMvc.perform(
-            post("/api/v1/queue/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)),
-        )
-            .andExpect(status().isCreated)
-            .andReturn()
+        // 1. 토큰 생성 및 WAITING 상태로 저장
+        val queueTokenModel = QueueTokenModel.create(userId)
+        redisQueueRepository.save(queueTokenModel) // 내부에서 addToWaitingQueue 호출됨
 
-        val token = objectMapper.readTree(tokenResponse.response.contentAsString).get("token").asText()
-        // 토큰을 ACTIVE 상태로 변경
+        // 2. ACTIVE 상태로 활성화
         redisQueueRepository.activateWaitingUsers(1)
-        // Allow Redis to propagate changes
-        Thread.sleep(500)
-        return token
+
+        return queueTokenModel.token
     }
 
+    // TODO
     @Test
     @DisplayName("POST /api/v1/concerts/{concertId}/reservations - 좌석 예약 성공")
     fun createReservationSuccess() {
@@ -246,6 +240,7 @@ class ReservationControllerTest : AbstractIntegrationContainerBaseTest() {
             .andExpect(status().is4xxClientError)
     }
 
+    // TODO
     @Test
     @DisplayName("GET /api/v1/concerts/{concertId}/reservations - 예약 조회 성공")
     fun getConcertReservationsSuccess() {

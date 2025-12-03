@@ -4,16 +4,20 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.domain.concert.model.SeatModel
+import kr.hhplus.be.server.domain.concert.model.SeatStatus
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.payment.model.PaymentModel
+import kr.hhplus.be.server.domain.payment.model.PaymentStatus
 import kr.hhplus.be.server.domain.payment.service.PaymentService
 import kr.hhplus.be.server.domain.point.model.PointModel
 import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
+import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
+import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
@@ -81,7 +85,7 @@ class ProcessPaymentUseCaseTest {
             id = reservationId,
             userId = userId,
             seatId = seatId,
-            reservationStatus = kr.hhplus.be.server.domain.reservation.model.ReservationStatus.TEMPORARY,
+            reservationStatus = ReservationStatus.TEMPORARY,
             temporaryReservedAt = java.time.LocalDateTime.now(),
             temporaryExpiredAt = java.time.LocalDateTime.now().plusMinutes(5),
             createdAt = java.time.LocalDateTime.now(),
@@ -92,7 +96,7 @@ class ProcessPaymentUseCaseTest {
             concertScheduleId = 1L,
             seatNumber = 1,
             price = price,
-            seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.TEMPORARY_RESERVED,
+            seatStatus = SeatStatus.TEMPORARY_RESERVED,
             createdAt = java.time.LocalDateTime.now(),
             updatedAt = java.time.LocalDateTime.now(),
         )
@@ -101,7 +105,7 @@ class ProcessPaymentUseCaseTest {
             reservationId = reservationId,
             userId = userId,
             amount = price,
-            paymentStatus = kr.hhplus.be.server.domain.payment.model.PaymentStatus.COMPLETED,
+            paymentStatus = PaymentStatus.COMPLETED,
             paymentAt = java.time.LocalDateTime.now(),
             createdAt = java.time.LocalDateTime.now(),
             updatedAt = java.time.LocalDateTime.now(),
@@ -109,7 +113,7 @@ class ProcessPaymentUseCaseTest {
         val token = QueueTokenModel.reconstitute(
             userId = userId,
             token = queueToken,
-            queueStatus = kr.hhplus.be.server.domain.queue.model.QueueStatus.ACTIVE,
+            queueStatus = QueueStatus.ACTIVE,
             activatedAt = java.time.LocalDateTime.now(),
             expiresAt = java.time.LocalDateTime.now().plusMinutes(10),
             createdAt = java.time.LocalDateTime.now(),
