@@ -20,6 +20,12 @@ spring:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
 
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:hhplus-secret-key-please-change-this-in-production-minimum-256-bits-required-for-hs256}
+  access-token-validity: 900000      # 15분 (900,000 ms)
+  refresh-token-validity: 604800000  # 7일 (604,800,000 ms)
+
 # OpenAPI/Swagger Configuration
 springdoc:
   api-docs:
@@ -49,7 +55,7 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6380
+      port: 6379
 
 ---
 spring.config.activate.on-profile: test

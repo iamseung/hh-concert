@@ -11,4 +11,16 @@ class UserService(
     fun findById(userId: Long): UserModel {
         return userRepository.findByIdOrThrow(userId)
     }
+
+    fun findByEmail(email: String): UserModel? {
+        return userRepository.findByEmail(email)
+    }
+
+    fun exists(email: String): Boolean {
+        return userRepository.findByEmail(email) != null
+    }
+
+    fun save(user: UserModel): Long {
+        return userRepository.save(user).id
+    }
 }
