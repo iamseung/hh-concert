@@ -1,0 +1,78 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        id: test
+        run: ./gradlew test --continue
+        continue-on-error: true
+
+      # ✅ 테스트 결과를 PR 코멘트로 등록
+      - name: 테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: '**/build/test-results/test/TEST-*.xml'
+
+      # ✅ 실패한 테스트 코드 라인에 체크 표시
+      - name: 테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
+
+      - name: Check test results
+        id: check
+        run: |
+          if [ -f build/reports/tests/test/index.html ]; then
+            PASSED=$(grep -oP '\d+(?= passed)' build/reports/tests/test/index.html | head -1 || echo "0")
+            FAILED=$(grep -oP '\d+(?= failed)' build/reports/tests/test/index.html | head -1 || echo "0")
+          else
+            PASSED=0
+            FAILED=0
+          fi
+          
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "✅ Passed: $PASSED, ❌ Failed: $FAILED"
+          
+          if [ "$PASSED" -eq 0 ]; then
+            echo "all_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "all_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Close PR if all tests failed
+        if: steps.check.outputs.all_failed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr close ${{ github.event.pull_request.number }} \
+            --comment "❌ 모든 테스트가 실패했습니다. PR을 자동으로 닫습니다.
+
+          테스트를 수정한 후 다시 PR을 열어주세요."
+
+      - name: Fail workflow if tests failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1
