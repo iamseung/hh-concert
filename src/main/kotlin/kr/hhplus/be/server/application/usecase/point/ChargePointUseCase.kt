@@ -20,7 +20,7 @@ class ChargePointUseCase(
         // 1. 사용자 검증
         val user = userService.findById(command.userId)
 
-        // 2. 포인트 충전
+        // 2. 포인트 충전 (Service 내부에서 @Transactional)
         val point = pointService.chargePoint(user.id, command.amount)
 
         // 3. 히스토리 기록

@@ -1,3 +1,12 @@
+-- 테스트 유저 데이터 삽입
+-- 이메일: ss@naver.com, 이름: 홍길동, 비밀번호: 111111 (암호화됨)
+INSERT INTO user (user_name, email, password, created_at, updated_at)
+VALUES ('홍길동', 'ss@naver.com', '$2a$12$mwXEIXTtFesoB6vXFUObsOZt8FF3i7PuQtPtRhuu586Jc0.8m4eEW', NOW(), NOW());
+
+-- 포인트 데이터 삽입 (초기 잔액 0원)
+INSERT INTO point (user_id, balance, created_at, updated_at)
+VALUES (1, 0, NOW(), NOW());
+
 -- 콘서트 데이터 삽입
 INSERT INTO concert (title, description, created_at, updated_at)
 VALUES ('블랙핑크', '블랙핑크 콘서트!!!!!!!!!!!!!', NOW(), NOW());
