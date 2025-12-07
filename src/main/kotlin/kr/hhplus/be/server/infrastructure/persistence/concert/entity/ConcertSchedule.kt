@@ -5,7 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "concert_schedule")
@@ -13,7 +13,7 @@ class ConcertSchedule(
     @Column(name = "concert_id", nullable = false)
     val concertId: Long,
 
-    var concertDate: LocalDate,
+    var concertDate: LocalDateTime,
 ) : BaseEntity() {
 
     fun toModel(): ConcertScheduleModel {

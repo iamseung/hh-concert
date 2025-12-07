@@ -10,18 +10,18 @@ data class ConcertScheduleResponse(
     val id: Long?,
     @Schema(description = "콘서트 ID", example = "1")
     val concertId: Long,
-    @Schema(description = "콘서트 예약 가능한 날짜", example = "2025-06-15")
+    @Schema(description = "콘서트 예약 가능한 날짜와 시간", example = "2025-06-15T19:00:00")
     val concertDate: String,
 ) {
 
     companion object {
-        private val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+        private val dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
         fun from(schedule: ConcertScheduleModel): ConcertScheduleResponse {
             return ConcertScheduleResponse(
                 id = schedule.id,
                 concertId = schedule.concertId,
-                concertDate = schedule.concertDate.format(dateFormatter),
+                concertDate = schedule.concertDate.format(dateTimeFormatter),
             )
         }
     }

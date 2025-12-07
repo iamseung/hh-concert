@@ -15,8 +15,11 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
+import org.springframework.context.annotation.Profile
+
 @Configuration
 @EnableWebSecurity
+@Profile("!test")
 class SecurityConfig(
     private val jwtTokenProvider: JwtTokenProvider,
 ) {
@@ -32,9 +35,8 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers(
-                        "/api/v1/users/signup",
-                        "/api/v1/users/login",
-                        "/api/v1/users/refresh",
+                        "/api/v1/users/*",
+                        "/api/v1/concerts/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/actuator/health"

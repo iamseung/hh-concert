@@ -11,7 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 class GetAvailableSchedulesUseCaseTest {
 
@@ -47,16 +47,16 @@ class GetAvailableSchedulesUseCaseTest {
         val schedule1 = ConcertScheduleModel.reconstitute(
             id = 1L,
             concertId = concertId,
-            concertDate = LocalDate.now().plusDays(1),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            concertDate = LocalDateTime.now().plusDays(1),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val schedule2 = ConcertScheduleModel.reconstitute(
             id = 2L,
             concertId = concertId,
-            concertDate = LocalDate.now().plusDays(2),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            concertDate = LocalDateTime.now().plusDays(2),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert

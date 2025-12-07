@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @AutoConfigureMockMvc
 @DisplayName("결제 컨트롤러 API 통합 테스트")
@@ -132,7 +132,7 @@ class PaymentControllerTest : AbstractIntegrationContainerBaseTest() {
         val user = userJpaRepository.save(User("테스트", "test@example.com", "password"))
         val concert = concertJpaRepository.save(Concert("테스트 콘서트", null))
         val schedule = concertScheduleJpaRepository.save(
-            ConcertSchedule(concert.id, LocalDate.now().plusDays(7)),
+            ConcertSchedule(concert.id, LocalDateTime.now().plusDays(7)),
         )
         val seat = seatJpaRepository.save(Seat(schedule.id, 1, SeatStatus.AVAILABLE, 50000))
 
@@ -192,7 +192,7 @@ class PaymentControllerTest : AbstractIntegrationContainerBaseTest() {
         val user = userJpaRepository.save(User("테스트", "test@example.com", "password"))
         val concert = concertJpaRepository.save(Concert("테스트 콘서트", null))
         val schedule = concertScheduleJpaRepository.save(
-            ConcertSchedule(concert.id, LocalDate.now().plusDays(7)),
+            ConcertSchedule(concert.id, LocalDateTime.now().plusDays(7)),
         )
         val seat = seatJpaRepository.save(Seat(schedule.id, 1, SeatStatus.AVAILABLE, 50000))
 

@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @AutoConfigureMockMvc
 @DisplayName("콘서트 컨트롤러 API 통합 테스트")
@@ -63,10 +63,10 @@ class ConcertControllerTest : AbstractIntegrationContainerBaseTest() {
         // given
         val concert = concertJpaRepository.save(Concert("테스트 콘서트", null))
         val schedule1 = concertScheduleJpaRepository.save(
-            ConcertSchedule(concert.id, LocalDate.now().plusDays(7)),
+            ConcertSchedule(concert.id, LocalDateTime.now().plusDays(7)),
         )
         val schedule2 = concertScheduleJpaRepository.save(
-            ConcertSchedule(concert.id, LocalDate.now().plusDays(14)),
+            ConcertSchedule(concert.id, LocalDateTime.now().plusDays(14)),
         )
 
         // when & then
@@ -103,7 +103,7 @@ class ConcertControllerTest : AbstractIntegrationContainerBaseTest() {
         // given
         val concert = concertJpaRepository.save(Concert("테스트 콘서트", null))
         val schedule = concertScheduleJpaRepository.save(
-            ConcertSchedule(concert.id, LocalDate.now().plusDays(7)),
+            ConcertSchedule(concert.id, LocalDateTime.now().plusDays(7)),
         )
         val seat1 = seatJpaRepository.save(Seat(schedule.id, 1, SeatStatus.AVAILABLE, 50000))
         val seat2 = seatJpaRepository.save(Seat(schedule.id, 2, SeatStatus.AVAILABLE, 50000))

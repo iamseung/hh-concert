@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.usecase.concert
 
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class GetAvailableSchedulesResult(
     val schedules: List<ScheduleInfo>,
@@ -8,6 +8,6 @@ data class GetAvailableSchedulesResult(
     data class ScheduleInfo(
         val scheduleId: Long,
         val concertId: Long,
-        val concertDate: LocalDate,
+        val concertDate: LocalDateTime,
     )
 }

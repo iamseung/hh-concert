@@ -2,19 +2,18 @@ package kr.hhplus.be.server.domain.concert.model
 
 import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ConcertScheduleModel private constructor(
     var id: Long,
     val concertId: Long,
-    val concertDate: LocalDate,
+    val concertDate: LocalDateTime,
     val createdAt: LocalDateTime,
     var updatedAt: LocalDateTime,
 ) {
 
     val isAvailable: Boolean
-        get() = !concertDate.isBefore(LocalDate.now())
+        get() = !concertDate.isBefore(LocalDateTime.now())
 
     fun validateAvailable() {
         if (!isAvailable) {
@@ -29,7 +28,7 @@ class ConcertScheduleModel private constructor(
     }
 
     companion object {
-        fun create(concertId: Long, concertDate: LocalDate): ConcertScheduleModel {
+        fun create(concertId: Long, concertDate: LocalDateTime): ConcertScheduleModel {
             val now = LocalDateTime.now()
             return ConcertScheduleModel(
                 id = 0L,
@@ -43,7 +42,7 @@ class ConcertScheduleModel private constructor(
         fun reconstitute(
             id: Long,
             concertId: Long,
-            concertDate: LocalDate,
+            concertDate: LocalDateTime,
             createdAt: LocalDateTime,
             updatedAt: LocalDateTime,
         ): ConcertScheduleModel {
