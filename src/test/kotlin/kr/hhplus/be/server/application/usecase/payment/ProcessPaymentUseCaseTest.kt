@@ -25,6 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 class ProcessPaymentUseCaseTest {
 
@@ -78,18 +79,18 @@ class ProcessPaymentUseCaseTest {
             userName = "testUser",
             email = "test@test.com",
             password = "password",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val reservation = ReservationModel.reconstitute(
             id = reservationId,
             userId = userId,
             seatId = seatId,
             reservationStatus = ReservationStatus.TEMPORARY,
-            temporaryReservedAt = java.time.LocalDateTime.now(),
-            temporaryExpiredAt = java.time.LocalDateTime.now().plusMinutes(5),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            temporaryReservedAt = LocalDateTime.now(),
+            temporaryExpiredAt = LocalDateTime.now().plusMinutes(5),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val seat = SeatModel.reconstitute(
             id = seatId,
@@ -97,8 +98,8 @@ class ProcessPaymentUseCaseTest {
             seatNumber = 1,
             price = price,
             seatStatus = SeatStatus.TEMPORARY_RESERVED,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val payment = PaymentModel.reconstitute(
             id = 1L,
@@ -106,29 +107,29 @@ class ProcessPaymentUseCaseTest {
             userId = userId,
             amount = price,
             paymentStatus = PaymentStatus.COMPLETED,
-            paymentAt = java.time.LocalDateTime.now(),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            paymentAt = LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val token = QueueTokenModel.reconstitute(
             userId = userId,
             token = queueToken,
             queueStatus = QueueStatus.ACTIVE,
-            activatedAt = java.time.LocalDateTime.now(),
-            expiresAt = java.time.LocalDateTime.now().plusMinutes(10),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            activatedAt = LocalDateTime.now(),
+            expiresAt = LocalDateTime.now().plusMinutes(10),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val point = PointModel.reconstitute(
             id = 1L,
             userId = userId,
             balance = 0,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
 
         every { userService.findById(userId) } returns user
-        every { reservationService.findById(reservationId) } returns reservation
+        every { reservationService.findByIdWithLock(reservationId) } returns reservation
         every { seatService.findById(seatId) } returns seat
         every { seatService.update(any()) } returns seat
         every { pointService.usePoint(userId, price) } returns point
@@ -147,7 +148,7 @@ class ProcessPaymentUseCaseTest {
         assertThat(result.userId).isEqualTo(userId)
         assertThat(result.amount).isEqualTo(price)
         verify(exactly = 1) { userService.findById(userId) }
-        verify(exactly = 1) { reservationService.findById(reservationId) }
+        verify(exactly = 1) { reservationService.findByIdWithLock(reservationId) }
         verify(exactly = 1) { paymentService.savePayment(any()) }
     }
 }

@@ -41,8 +41,8 @@ class GetAvailableSchedulesUseCaseTest {
             id = concertId,
             title = "테스트 콘서트",
             description = "테스트 설명",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val schedule1 = ConcertScheduleModel.reconstitute(
             id = 1L,
@@ -84,8 +84,8 @@ class GetAvailableSchedulesUseCaseTest {
             id = concertId,
             title = "테스트 콘서트",
             description = "테스트 설명",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert

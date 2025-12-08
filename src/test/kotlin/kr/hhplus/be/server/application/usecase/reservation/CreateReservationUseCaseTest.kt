@@ -68,8 +68,8 @@ class CreateReservationUseCaseTest {
             userName = "testUser",
             email = "test@test.com",
             password = "password",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val schedule = ConcertScheduleModel.reconstitute(
             id = scheduleId,
@@ -84,27 +84,27 @@ class CreateReservationUseCaseTest {
             seatNumber = 1,
             price = 100000,
             seatStatus = SeatStatus.AVAILABLE,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val reservation = ReservationModel.reconstitute(
             id = 1L,
             userId = userId,
             seatId = seatId,
             reservationStatus = ReservationStatus.TEMPORARY,
-            temporaryReservedAt = java.time.LocalDateTime.now(),
-            temporaryExpiredAt = java.time.LocalDateTime.now().plusMinutes(5),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            temporaryReservedAt = LocalDateTime.now(),
+            temporaryExpiredAt = LocalDateTime.now().plusMinutes(5),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val token = QueueTokenModel.reconstitute(
             userId = userId,
             token = queueToken,
             queueStatus = QueueStatus.ACTIVE,
-            activatedAt = java.time.LocalDateTime.now(),
-            expiresAt = java.time.LocalDateTime.now().plusMinutes(10),
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            activatedAt = LocalDateTime.now(),
+            expiresAt = LocalDateTime.now().plusMinutes(10),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
 
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns token

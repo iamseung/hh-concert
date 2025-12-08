@@ -11,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime.*
 
 class GetPointUseCaseTest {
 
@@ -41,15 +42,15 @@ class GetPointUseCaseTest {
             userName = "testUser",
             email = "test@test.com",
             password = "password",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = now(),
+            updatedAt = now(),
         )
         val point = PointModel.reconstitute(
             id = 1L,
             userId = userId,
             balance = 50000,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = now(),
+            updatedAt = now(),
         )
 
         every { userService.findById(userId) } returns user

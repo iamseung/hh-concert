@@ -70,12 +70,11 @@ class PointConcurrencyTest {
         // When: 50회 동시 충전 (Service 계층 테스트)
         repeat(chargeCount) {
             executor.submit {
-                try {
+                runCatching {
                     pointService.chargePoint(user.id, chargeAmount)
+                }.onSuccess {
                     successCount.incrementAndGet()
-                } catch (e: Exception) {
-                    // 예외 발생 시 실패로 간주
-                } finally {
+                }.also {
                     latch.countDown()
                 }
             }
@@ -110,12 +109,11 @@ class PointConcurrencyTest {
         // When: 충전 20회 (Service 계층 테스트)
         repeat(chargeCount) {
             executor.submit {
-                try {
+                runCatching {
                     pointService.chargePoint(user.id, chargeAmount)
+                }.onSuccess {
                     chargeSuccess.incrementAndGet()
-                } catch (e: Exception) {
-                    // 예외 발생 시 실패로 간주
-                } finally {
+                }.also {
                     latch.countDown()
                 }
             }
@@ -124,12 +122,11 @@ class PointConcurrencyTest {
         // When: 사용 20회 (Service 계층 테스트)
         repeat(useCount) {
             executor.submit {
-                try {
+                runCatching {
                     pointService.usePoint(user.id, useAmount)
+                }.onSuccess {
                     useSuccess.incrementAndGet()
-                } catch (e: Exception) {
-                    // 잔액 부족 등 예외 발생 시 실패로 간주
-                } finally {
+                }.also {
                     latch.countDown()
                 }
             }
@@ -165,13 +162,12 @@ class PointConcurrencyTest {
         // When: 3명이 동시에 6,000원 사용 시도 (Service 사용)
         repeat(useCount) {
             executor.submit {
-                try {
+                runCatching {
                     pointService.usePoint(user.id, useAmount)
-                    successCount.incrementAndGet()
-                } catch (e: Exception) {
-                    // 잔액 부족 시 예외 발생
-                    failCount.incrementAndGet()
-                } finally {
+                }.fold(
+                    onSuccess = { successCount.incrementAndGet() },
+                    onFailure = { failCount.incrementAndGet() }
+                ).also {
                     latch.countDown()
                 }
             }

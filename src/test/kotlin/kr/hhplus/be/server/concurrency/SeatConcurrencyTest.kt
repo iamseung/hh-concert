@@ -61,7 +61,7 @@ class SeatConcurrencyTest {
         // When: 10개 스레드가 동시에 Lock 시도
         repeat(threadCount) {
             executor.submit {
-                try {
+                runCatching {
                     transactionTemplate.execute {
                         // Pessimistic Lock 획득
                         val lockedSeat = seatJpaRepository.findByIdWithLock(saved.id)
@@ -76,7 +76,7 @@ class SeatConcurrencyTest {
                             alreadyReservedCount.incrementAndGet()
                         }
                     }
-                } finally {
+                }.also {
                     latch.countDown()
                 }
             }
@@ -116,7 +116,7 @@ class SeatConcurrencyTest {
         // When: 각 좌석에 대해 동시 Lock
         seats.forEach { seat ->
             executor.submit {
-                try {
+                runCatching {
                     transactionTemplate.execute {
                         val locked = seatJpaRepository.findByIdWithLock(seat.id)
                         if (locked != null) {
@@ -126,7 +126,7 @@ class SeatConcurrencyTest {
                             Thread.sleep(50)
                         }
                     }
-                } finally {
+                }.also {
                     latch.countDown()
                 }
             }

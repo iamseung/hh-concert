@@ -48,8 +48,8 @@ class GetAvailableSeatsUseCaseTest {
             id = concertId,
             title = "테스트 콘서트",
             description = "테스트 설명",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val schedule = ConcertScheduleModel.reconstitute(
             id = scheduleId,
@@ -64,8 +64,8 @@ class GetAvailableSeatsUseCaseTest {
             seatNumber = 1,
             price = 100000,
             seatStatus = SeatStatus.AVAILABLE,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val seat2 = SeatModel.reconstitute(
             id = 2L,
@@ -73,8 +73,8 @@ class GetAvailableSeatsUseCaseTest {
             seatNumber = 2,
             price = 100000,
             seatStatus = SeatStatus.AVAILABLE,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert
@@ -105,8 +105,8 @@ class GetAvailableSeatsUseCaseTest {
             id = concertId,
             title = "테스트 콘서트",
             description = "테스트 설명",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
         )
         val schedule = ConcertScheduleModel.reconstitute(
             id = scheduleId,

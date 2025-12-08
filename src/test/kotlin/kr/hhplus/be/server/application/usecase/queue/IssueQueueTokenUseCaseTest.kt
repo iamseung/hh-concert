@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime.*
 
 class IssueQueueTokenUseCaseTest {
 
@@ -42,8 +43,8 @@ class IssueQueueTokenUseCaseTest {
             userName = "testUser",
             email = "test@test.com",
             password = "password",
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = now(),
+            updatedAt = now(),
         )
         val queueToken = QueueTokenModel.reconstitute(
             userId = userId,
@@ -51,8 +52,8 @@ class IssueQueueTokenUseCaseTest {
             queueStatus = QueueStatus.WAITING,
             activatedAt = null,
             expiresAt = null,
-            createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now(),
+            createdAt = now(),
+            updatedAt = now(),
         )
 
         every { userService.findById(userId) } returns user
