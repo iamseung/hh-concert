@@ -4,6 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
@@ -11,7 +12,14 @@ import kr.hhplus.be.server.infrastructure.comon.BaseEntity
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "reservation")
+@Table(
+    name = "reservation",
+    indexes = [
+        Index(name = "idx_reservation_status_expired", columnList = "reservation_status, temporary_expired_at"),
+        Index(name = "idx_reservation_user", columnList = "user_id, created_at"),
+        Index(name = "idx_reservation_user_seat", columnList = "user_id, seat_id")
+    ]
+)
 class Reservation(
     @Column(name = "user_id", nullable = false)
     val userId: Long,

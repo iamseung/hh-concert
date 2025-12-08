@@ -4,13 +4,20 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
 
 @Entity
-@Table(name = "seat")
+@Table(
+    name = "seat",
+    indexes = [
+        Index(name = "idx_seat_schedule_status", columnList = "concert_schedule_id, seat_status"),
+        Index(name = "idx_seat_status", columnList = "seat_status")
+    ]
+)
 class Seat(
     @Column(name = "concert_schedule_id", nullable = false)
     val concertScheduleId: Long,

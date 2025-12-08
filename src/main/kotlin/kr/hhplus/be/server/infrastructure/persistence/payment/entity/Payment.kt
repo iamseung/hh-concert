@@ -4,6 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.model.PaymentStatus
@@ -11,7 +12,13 @@ import kr.hhplus.be.server.infrastructure.comon.BaseEntity
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "payment")
+@Table(
+    name = "payment",
+    indexes = [
+        Index(name = "idx_payment_reservation", columnList = "reservation_id", unique = true),
+        Index(name = "idx_payment_user", columnList = "user_id, created_at")
+    ]
+)
 class Payment(
     @Column(name = "reservation_id", nullable = false)
     val reservationId: Long,

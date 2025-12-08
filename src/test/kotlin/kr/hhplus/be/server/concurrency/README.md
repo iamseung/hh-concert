@@ -533,14 +533,95 @@ fun `should prevent lost update when balance insufficient`() {
 
 #### 1. 현재 적용된 최적화
 
-✅ **인덱스 최적화**
-```sql
--- 좌석 조회 성능 향상
-CREATE INDEX idx_seat_id ON seat(id);
+✅ **조회 성능 최적화 인덱스**
 
--- 포인트 조회 성능 향상
-CREATE INDEX idx_point_user_id ON point(user_id);
+실제 JpaRepository 쿼리 패턴 분석 기반으로 JPA Entity에 인덱스 정의:
+
+```kotlin
+// ========================================
+// Seat.kt - 좌석 조회 최적화
+// ========================================
+@Table(
+    name = "seat",
+    indexes = [
+        // 예약 가능 좌석 조회 (최우선 성능 개선)
+        Index(name = "idx_seat_schedule_status",
+              columnList = "concert_schedule_id, seat_status"),
+        // 상태별 전체 좌석 조회
+        Index(name = "idx_seat_status",
+              columnList = "seat_status")
+    ]
+)
+// 쿼리: findAllByConcertScheduleIdAndSeatStatus()
+// 효과: Full Table Scan → Index Scan
+
+// ========================================
+// Reservation.kt - 예약 조회 최적화
+// ========================================
+@Table(
+    name = "reservation",
+    indexes = [
+        // 만료 임시예약 조회 (스케줄러 핵심)
+        Index(name = "idx_reservation_status_expired",
+              columnList = "reservation_status, temporary_expired_at"),
+        // 사용자별 예약 내역 조회
+        Index(name = "idx_reservation_user",
+              columnList = "user_id, created_at"),
+        // 중복 예약 방지
+        Index(name = "idx_reservation_user_seat",
+              columnList = "user_id, seat_id")
+    ]
+)
+// 쿼리: findExpiredReservations(), findAllByUserId(), findByUserIdAndSeatId()
+// 효과: 스케줄러 Full Scan 제거, Covering Index 정렬 최적화
+
+// ========================================
+// ConcertSchedule.kt - 스케줄 조회 최적화
+// ========================================
+@Table(
+    name = "concert_schedule",
+    indexes = [
+        Index(name = "idx_schedule_concert_date",
+              columnList = "concert_id, concert_date")
+    ]
+)
+// 쿼리: findAvailableSchedules()
+// 효과: 예약 가능 일정 Range Scan 최적화
+
+// ========================================
+// Payment.kt - 결제 조회 최적화
+// ========================================
+@Table(
+    name = "payment",
+    indexes = [
+        // 예약별 결제 조회 (1:1 UNIQUE)
+        Index(name = "idx_payment_reservation",
+              columnList = "reservation_id", unique = true),
+        // 사용자별 결제 내역
+        Index(name = "idx_payment_user",
+              columnList = "user_id, created_at")
+    ]
+)
+// 쿼리: findByReservationId(), findAllByUserId()
+// 효과: Unique Index Scan, 최신순 정렬 성능 향상
 ```
+
+**📊 인덱스 설계 근거**
+
+| 테이블 | 쿼리 패턴 | 개선 전 | 개선 후 | 근거 |
+|--------|-----------|---------|---------|------|
+| **Seat** | `findAllByConcertScheduleIdAndSeatStatus()` | Full Scan | Index Scan | 복합 인덱스 (schedule_id + status) |
+| **Reservation** | `findExpiredReservations()` (스케줄러) | Full Scan | Range Scan | 복합 인덱스 (status + expired_at) |
+| **Reservation** | `findAllByUserId()` | Table Scan | Index Only Scan | Covering Index (user_id + created_at) |
+| **ConcertSchedule** | `findAvailableSchedules()` | Table Scan | Range Scan | 복합 인덱스 (concert_id + date) |
+| **Payment** | `findByReservationId()` | Table Scan | Unique Index | 1:1 관계 UNIQUE 제약 |
+
+**핵심 성능 개선 포인트:**
+- ✅ **만료 임시예약 조회**: 스케줄러 실행 시 Full Scan 제거 → Range Scan
+- ✅ **예약 가능 좌석 조회**: 사용자 요청마다 발생하는 성능 병목 해소
+- ✅ **사용자 예약/결제 내역**: Covering Index로 정렬 오버헤드 제거
+
+---
 
 ✅ **Connection Pool 설정**
 ```yaml
