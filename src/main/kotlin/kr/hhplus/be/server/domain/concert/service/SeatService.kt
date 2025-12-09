@@ -28,16 +28,7 @@ class SeatService(
         return seatRepository.update(seatModel)
     }
 
-    fun restoreExpiredTemporaryReservations(expirationMinutes: Long = 5): Int {
-        val temporarySeats = seatRepository.findAllByStatus(SeatStatus.TEMPORARY_RESERVED)
-
-        val expiredSeats = temporarySeats.filter { it.isExpiredTemporaryReservation(expirationMinutes) }
-
-        expiredSeats.forEach { seat ->
-            seat.restoreToAvailable()
-            seatRepository.update(seat)
-        }
-
-        return expiredSeats.size
+    fun restoreExpiredSeats(seatIds: List<Long>): Int {
+        return seatRepository.bulkRestoreExpiredSeats(seatIds)
     }
 }

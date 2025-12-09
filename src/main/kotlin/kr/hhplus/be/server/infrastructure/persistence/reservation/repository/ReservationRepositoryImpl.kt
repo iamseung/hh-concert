@@ -42,4 +42,8 @@ class ReservationRepositoryImpl(
     override fun findAllByUserId(userId: Long): List<ReservationModel> {
         return reservationJpaRepository.findAllByUserId(userId).map { it.toModel() }
     }
+
+    override fun findExpiredReservationSeatIds(now: java.time.LocalDateTime): List<Long> {
+        return reservationJpaRepository.findExpiredReservationSeatIds(now)
+    }
 }

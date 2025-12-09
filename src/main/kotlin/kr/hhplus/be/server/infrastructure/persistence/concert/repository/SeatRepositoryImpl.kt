@@ -43,4 +43,9 @@ class SeatRepositoryImpl(
     override fun findAllByStatus(status: SeatStatus): List<SeatModel> {
         return seatJpaRepository.findAllBySeatStatus(status).map { it.toModel() }
     }
+
+    override fun bulkRestoreExpiredSeats(seatIds: List<Long>): Int {
+        if (seatIds.isEmpty()) return 0
+        return seatJpaRepository.bulkRestoreExpiredSeats(seatIds)
+    }
 }
