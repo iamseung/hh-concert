@@ -6,6 +6,10 @@ import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.service.UserService
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.PessimisticLockingFailureException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,6 +23,14 @@ class CreateReservationUseCase(
 ) {
 
     @Transactional
+    @Retryable(
+        retryFor = [
+            PessimisticLockingFailureException::class,
+            CannotAcquireLockException::class,
+        ],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0),
+    )
     fun execute(command: CreateReservationCommand): CreateReservationResult {
         // 1. 대기열 토큰 검증
         val token = queueTokenService.getQueueTokenByToken(command.queueToken)

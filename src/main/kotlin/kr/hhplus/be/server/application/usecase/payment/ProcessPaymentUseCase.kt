@@ -9,6 +9,10 @@ import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.service.UserService
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.PessimisticLockingFailureException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -24,6 +28,14 @@ class ProcessPaymentUseCase(
 ) {
 
     @Transactional
+    @Retryable(
+        retryFor = [
+            PessimisticLockingFailureException::class,
+            CannotAcquireLockException::class,
+        ],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 150, multiplier = 2.0),
+    )
     fun execute(command: ProcessPaymentCommand): ProcessPaymentResult {
         // 1. 사용자 검증
         val user = userService.findById(command.userId)
