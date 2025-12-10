@@ -17,8 +17,8 @@ import java.time.LocalDateTime
     indexes = [
         Index(name = "idx_reservation_status_expired", columnList = "reservation_status, temporary_expired_at"),
         Index(name = "idx_reservation_user", columnList = "user_id, created_at"),
-        Index(name = "idx_reservation_user_seat", columnList = "user_id, seat_id")
-    ]
+        Index(name = "idx_reservation_user_seat", columnList = "user_id, seat_id"),
+    ],
 )
 class Reservation(
     @Column(name = "user_id", nullable = false)

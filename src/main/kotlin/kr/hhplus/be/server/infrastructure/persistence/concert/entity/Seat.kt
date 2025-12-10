@@ -15,8 +15,8 @@ import kr.hhplus.be.server.infrastructure.comon.BaseEntity
     name = "seat",
     indexes = [
         Index(name = "idx_seat_schedule_status", columnList = "concert_schedule_id, seat_status"),
-        Index(name = "idx_seat_status", columnList = "seat_status")
-    ]
+        Index(name = "idx_seat_status", columnList = "seat_status"),
+    ],
 )
 class Seat(
     @Column(name = "concert_schedule_id", nullable = false)

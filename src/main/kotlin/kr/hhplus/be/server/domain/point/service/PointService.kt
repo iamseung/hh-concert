@@ -1,7 +1,5 @@
 package kr.hhplus.be.server.domain.point.service
 
-import kr.hhplus.be.server.common.exception.BusinessException
-import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.point.model.PointModel
 import kr.hhplus.be.server.domain.point.repository.PointRepository
 import org.springframework.stereotype.Service

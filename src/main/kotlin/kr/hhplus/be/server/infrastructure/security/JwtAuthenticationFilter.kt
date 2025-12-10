@@ -15,7 +15,7 @@ class JwtAuthenticationFilter(
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         val token = resolveToken(request)
 
@@ -26,7 +26,7 @@ class JwtAuthenticationFilter(
             val authentication = UsernamePasswordAuthenticationToken(
                 userId,
                 null,
-                emptyList()
+                emptyList(),
             )
 
             SecurityContextHolder.getContext().authentication = authentication

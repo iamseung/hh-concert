@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.auth.JwtTokenProvider
 import kr.hhplus.be.server.infrastructure.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -14,8 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-
-import org.springframework.context.annotation.Profile
 
 @Configuration
 @EnableWebSecurity
@@ -39,13 +38,13 @@ class SecurityConfig(
                         "/api/v1/concerts/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/actuator/health"
+                        "/actuator/health",
                     ).permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(
                 JwtAuthenticationFilter(jwtTokenProvider),
-                UsernamePasswordAuthenticationFilter::class.java
+                UsernamePasswordAuthenticationFilter::class.java,
             )
             .exceptionHandling {
                 it.authenticationEntryPoint(jwtAuthenticationEntryPoint())
@@ -60,7 +59,7 @@ class SecurityConfig(
         configuration.allowedOrigins = listOf(
             "http://localhost:3000",
             "http://localhost:5173",
-            "http://localhost:8080"
+            "http://localhost:8080",
         )
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
@@ -83,7 +82,7 @@ class SecurityConfig(
                     "message": "인증이 필요합니다",
                     "path": "${request.requestURI}"
                 }
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }

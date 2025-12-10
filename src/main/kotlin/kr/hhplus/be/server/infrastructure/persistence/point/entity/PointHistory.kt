@@ -4,13 +4,20 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.point.model.PointHistoryModel
 import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
 
 @Entity
-@Table(name = "point_history")
+@Table(
+    name = "point_history",
+    indexes = [
+        Index(name = "idx_point_history_user_time", columnList = "user_id, created_at"),
+        Index(name = "idx_point_history_user_type_time", columnList = "user_id, transaction_type, created_at"),
+    ],
+)
 class PointHistory(
     @Column(name = "user_id", nullable = false)
     val userId: Long,

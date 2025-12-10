@@ -166,7 +166,7 @@ class PointConcurrencyTest {
                     pointService.usePoint(user.id, useAmount)
                 }.fold(
                     onSuccess = { successCount.incrementAndGet() },
-                    onFailure = { failCount.incrementAndGet() }
+                    onFailure = { failCount.incrementAndGet() },
                 ).also {
                     latch.countDown()
                 }

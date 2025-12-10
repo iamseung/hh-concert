@@ -96,7 +96,7 @@ class ChargePointUseCaseTest {
 
         every { userService.findById(userId) } returns user
         every { pointService.chargePoint(userId, amount) } throws BusinessException(
-            ErrorCode.INVALID_CHARGE_AMOUNT
+            ErrorCode.INVALID_CHARGE_AMOUNT,
         )
 
         // when & then

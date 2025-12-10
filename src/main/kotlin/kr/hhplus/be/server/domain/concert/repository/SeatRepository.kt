@@ -2,7 +2,6 @@ package kr.hhplus.be.server.domain.concert.repository
 
 import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
-import java.time.LocalDateTime
 
 interface SeatRepository {
     fun update(seatModel: SeatModel): SeatModel

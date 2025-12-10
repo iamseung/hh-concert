@@ -29,11 +29,11 @@ class UserController(
 
     @Operation(
         summary = "로그인",
-        description = "이메일과 비밀번호로 로그인을 처리하고 JWT 토큰을 발급합니다."
+        description = "이메일과 비밀번호로 로그인을 처리하고 JWT 토큰을 발급합니다.",
     )
     @PostMapping("/login")
     fun login(
-        @RequestBody request: LoginUserRequest
+        @RequestBody request: LoginUserRequest,
     ): LoginUserResponse {
         val result = loginUserUseCase.execute(request.toCommand())
         return LoginUserResponse.from(result)
@@ -41,12 +41,12 @@ class UserController(
 
     @Operation(
         summary = "회원가입",
-        description = "입력받은 정보를 기반으로 회원을 생성합니다."
+        description = "입력받은 정보를 기반으로 회원을 생성합니다.",
     )
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
     fun signUp(
-        @RequestBody request: SignUpUserRequest
+        @RequestBody request: SignUpUserRequest,
     ): SignUpUserResponse {
         val result = signUpUserUseCase.execute(request.toCommand())
         return SignUpUserResponse.from(result)
@@ -54,11 +54,11 @@ class UserController(
 
     @Operation(
         summary = "토큰 갱신",
-        description = "Refresh Token을 사용하여 새로운 Access Token을 발급받습니다."
+        description = "Refresh Token을 사용하여 새로운 Access Token을 발급받습니다.",
     )
     @PostMapping("/refresh")
     fun refreshToken(
-        @RequestBody request: RefreshTokenRequest
+        @RequestBody request: RefreshTokenRequest,
     ): RefreshTokenResponse {
         val result = refreshTokenUseCase.execute(request.toCommand())
         return RefreshTokenResponse.from(result)

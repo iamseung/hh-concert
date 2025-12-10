@@ -23,6 +23,10 @@ class SeatService(
         return seatRepository.findAllByConcertScheduleId(scheduleId)
     }
 
+    fun findAvailableSeatsByConcertScheduleId(scheduleId: Long): List<SeatModel> {
+        return seatRepository.findAllByConcertScheduleIdAndStatus(scheduleId, kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE)
+    }
+
     fun update(seatModel: SeatModel): SeatModel {
         return seatRepository.update(seatModel)
     }

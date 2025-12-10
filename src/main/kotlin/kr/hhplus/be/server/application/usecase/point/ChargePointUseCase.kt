@@ -5,7 +5,6 @@ import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.user.service.UserService
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 
 @Component

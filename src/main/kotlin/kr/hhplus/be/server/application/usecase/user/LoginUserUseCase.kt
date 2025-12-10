@@ -33,7 +33,7 @@ class LoginUserUseCase(
         refreshTokenRepository.save(
             userId = user.id,
             refreshToken = refreshToken,
-            expiration = Duration.ofMillis(jwtProperties.refreshTokenValidity)
+            expiration = Duration.ofMillis(jwtProperties.refreshTokenValidity),
         )
 
         return LoginUserResult(

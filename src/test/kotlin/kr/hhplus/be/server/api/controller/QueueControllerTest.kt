@@ -2,20 +2,18 @@ package kr.hhplus.be.server.api.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
-import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
-import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.repository.RedisQueueRepository
 import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRepository
 import kr.hhplus.be.server.support.AbstractIntegrationContainerBaseTest
-import org.springframework.data.redis.core.RedisTemplate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get

@@ -79,7 +79,7 @@ class GetAvailableSeatsUseCaseTest {
 
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findById(scheduleId) } returns schedule
-        every { seatService.findAllByConcertScheduleId(scheduleId) } returns listOf(seat1, seat2)
+        every { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) } returns listOf(seat1, seat2)
 
         // when
         val result = getAvailableSeatsUseCase.execute(command)
@@ -90,7 +90,7 @@ class GetAvailableSeatsUseCaseTest {
         assertThat(result.seats[1].seatNumber).isEqualTo(2)
         verify(exactly = 1) { concertService.findById(concertId) }
         verify(exactly = 1) { concertScheduleService.findById(scheduleId) }
-        verify(exactly = 1) { seatService.findAllByConcertScheduleId(scheduleId) }
+        verify(exactly = 1) { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) }
     }
 
     @Test
@@ -118,7 +118,7 @@ class GetAvailableSeatsUseCaseTest {
 
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findById(scheduleId) } returns schedule
-        every { seatService.findAllByConcertScheduleId(scheduleId) } returns emptyList()
+        every { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) } returns emptyList()
 
         // when
         val result = getAvailableSeatsUseCase.execute(command)
@@ -127,6 +127,6 @@ class GetAvailableSeatsUseCaseTest {
         assertThat(result.seats).isEmpty()
         verify(exactly = 1) { concertService.findById(concertId) }
         verify(exactly = 1) { concertScheduleService.findById(scheduleId) }
-        verify(exactly = 1) { seatService.findAllByConcertScheduleId(scheduleId) }
+        verify(exactly = 1) { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) }
     }
 }

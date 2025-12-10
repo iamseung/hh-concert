@@ -22,9 +22,8 @@ class GetAvailableSeatsUseCase(
         val schedule = concertScheduleService.findById(command.scheduleId)
         schedule.validateIsConcert(concert)
 
-        // 3. 예약 가능한 좌석 조회
-        val availableSeats = seatService.findAllByConcertScheduleId(command.scheduleId)
-            .filter { seat -> seat.isAvailable }
+        // 3. 예약 가능한 좌석 조회 (DB에서 직접 필터링)
+        val availableSeats = seatService.findAvailableSeatsByConcertScheduleId(command.scheduleId)
 
         // 4. 결과 반환
         return GetAvailableSeatsResult(

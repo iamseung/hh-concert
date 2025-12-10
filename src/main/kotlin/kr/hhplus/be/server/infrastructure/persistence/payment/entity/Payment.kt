@@ -16,8 +16,8 @@ import java.time.LocalDateTime
     name = "payment",
     indexes = [
         Index(name = "idx_payment_reservation", columnList = "reservation_id", unique = true),
-        Index(name = "idx_payment_user", columnList = "user_id, created_at")
-    ]
+        Index(name = "idx_payment_user", columnList = "user_id, created_at"),
+    ],
 )
 class Payment(
     @Column(name = "reservation_id", nullable = false)
