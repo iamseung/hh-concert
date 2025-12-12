@@ -1,20 +1,37 @@
 package kr.hhplus.be.server.infrastructure.persistence.queue.repository
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.entity.QueueTokenRedisEntity
+import org.springframework.core.io.ClassPathResource
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 @Repository
 class RedisQueueRepository(
     private val redisTemplate: RedisTemplate<String, Any>,
+    private val stringRedisTemplate: org.springframework.data.redis.core.StringRedisTemplate,
+    private val objectMapper: ObjectMapper,
 ) : QueueTokenRepository {
+
+    // Lua 스크립트 로드
+    private val activateUsersScript: RedisScript<String> = RedisScript.of(
+        ClassPathResource("scripts/activate_waiting_users.lua"),
+        String::class.java,
+    )
+
+    private val expireTokensScript: RedisScript<String> = RedisScript.of(
+        ClassPathResource("scripts/remove_expired_active_tokens.lua"),
+        String::class.java,
+    )
 
     companion object {
         private const val WAITING_QUEUE_KEY = "queue:waiting"
@@ -29,7 +46,7 @@ class RedisQueueRepository(
      */
     fun addToWaitingQueue(userId: Long): Long {
         val score = System.currentTimeMillis().toDouble()
-        redisTemplate.opsForZSet().add(WAITING_QUEUE_KEY, userId.toString(), score)
+        stringRedisTemplate.opsForZSet().add(WAITING_QUEUE_KEY, userId.toString(), score)
         return getPosition(userId) ?: 0
     }
 
@@ -37,7 +54,7 @@ class RedisQueueRepository(
      * 대기열에서 사용자의 순위 조회 (0부터 시작)
      */
     fun getPosition(userId: Long): Long? {
-        val rank = redisTemplate.opsForZSet().rank(WAITING_QUEUE_KEY, userId.toString())
+        val rank = stringRedisTemplate.opsForZSet().rank(WAITING_QUEUE_KEY, userId.toString())
         return rank?.plus(1) // 1부터 시작하도록 변환
     }
 
@@ -45,86 +62,72 @@ class RedisQueueRepository(
      * WAITING 대기열 크기 조회
      */
     fun getWaitingQueueSize(): Long {
-        return redisTemplate.opsForZSet().size(WAITING_QUEUE_KEY) ?: 0
+        return stringRedisTemplate.opsForZSet().size(WAITING_QUEUE_KEY) ?: 0
     }
 
     /**
      * ACTIVE 대기열 크기 조회
      */
     fun getActiveQueueSize(): Long {
-        return redisTemplate.opsForZSet().size(ACTIVE_QUEUE_KEY) ?: 0
+        return stringRedisTemplate.opsForZSet().size(ACTIVE_QUEUE_KEY) ?: 0
     }
 
     /**
-     * 대기열에서 상위 N명을 ACTIVE로 이동
+     * 대기열에서 상위 N명을 ACTIVE로 이동 (Lua 스크립트로 원자화)
      */
     fun activateWaitingUsers(count: Int): List<Long> {
-        // 상위 N명 조회
-        val userIds = redisTemplate.opsForZSet()
-            .range(WAITING_QUEUE_KEY, 0, count.toLong() - 1)
-            ?.map { it.toString().toLong() }
-            ?: emptyList()
+        val now = LocalDateTime.now()
+        val expiryTime = now.plusMinutes(10)
+        val expiryScore = expiryTime.toInstant(ZoneOffset.UTC).toEpochMilli()
 
-        if (userIds.isEmpty()) return emptyList()
+        // Lua 스크립트 실행
+        val resultJson = stringRedisTemplate.execute(
+            activateUsersScript,
+            listOf(WAITING_QUEUE_KEY, ACTIVE_QUEUE_KEY),
+            count.toString(),
+            expiryScore.toString(),
+            now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+            expiryTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+        ) ?: "[]"
 
-        // WAITING에서 제거
-        userIds.forEach { userId ->
-            redisTemplate.opsForZSet().remove(WAITING_QUEUE_KEY, userId.toString())
+        // JSON 결과를 List<Long>으로 파싱
+        return try {
+            objectMapper.readValue(resultJson, Array<String>::class.java)
+                .map { it.toLong() }
+                .toList()
+        } catch (e: Exception) {
+            emptyList()
         }
-
-        // ACTIVE에 추가 (만료 시간을 score로)
-        val expiryTime = LocalDateTime.now().plusMinutes(10)
-        val expiryScore = expiryTime.toInstant(ZoneOffset.UTC).toEpochMilli().toDouble()
-
-        userIds.forEach { userId ->
-            redisTemplate.opsForZSet().add(ACTIVE_QUEUE_KEY, userId.toString(), expiryScore)
-
-            // 기존 토큰 Entity 조회 후 ACTIVE로 업데이트
-            val entity = getTokenEntity(userId)
-            if (entity != null) {
-                val updatedEntity = entity.copy(
-                    queueStatus = QueueStatus.ACTIVE,
-                    activatedAt = LocalDateTime.now(),
-                    expiresAt = expiryTime,
-                    updatedAt = LocalDateTime.now(),
-                )
-                saveTokenEntity(updatedEntity)
-            }
-        }
-
-        return userIds
     }
 
     /**
-     * 만료된 ACTIVE 토큰 제거
+     * 만료된 ACTIVE 토큰 제거 (Lua 스크립트로 원자화)
      */
     fun removeExpiredActiveTokens(): List<Long> {
-        val now = System.currentTimeMillis().toDouble()
+        val now = System.currentTimeMillis()
 
-        // 만료된 사용자 조회
-        val expiredUserIds = redisTemplate.opsForZSet()
-            .rangeByScore(ACTIVE_QUEUE_KEY, 0.0, now)
-            ?.map { it.toString().toLong() }
-            ?: emptyList()
+        // Lua 스크립트 실행
+        val resultJson = stringRedisTemplate.execute(
+            expireTokensScript,
+            listOf(ACTIVE_QUEUE_KEY),
+            now.toString(),
+        ) ?: "[]"
 
-        if (expiredUserIds.isEmpty()) return emptyList()
-
-        // ACTIVE에서 제거
-        redisTemplate.opsForZSet().removeRangeByScore(ACTIVE_QUEUE_KEY, 0.0, now)
-
-        // Token 정보도 삭제
-        expiredUserIds.forEach { userId ->
-            redisTemplate.delete("$TOKEN_KEY_PREFIX$userId")
+        // JSON 결과를 List<Long>으로 파싱
+        return try {
+            objectMapper.readValue(resultJson, Array<String>::class.java)
+                .map { it.toLong() }
+                .toList()
+        } catch (e: Exception) {
+            emptyList()
         }
-
-        return expiredUserIds
     }
 
     /**
      * 사용자가 WAITING에 있는지 확인
      */
     fun isInWaitingQueue(userId: Long): Boolean {
-        val score = redisTemplate.opsForZSet().score(WAITING_QUEUE_KEY, userId.toString())
+        val score = stringRedisTemplate.opsForZSet().score(WAITING_QUEUE_KEY, userId.toString())
         return score != null
     }
 
@@ -132,7 +135,7 @@ class RedisQueueRepository(
      * 사용자가 ACTIVE에 있는지 확인
      */
     fun isInActiveQueue(userId: Long): Boolean {
-        val score = redisTemplate.opsForZSet().score(ACTIVE_QUEUE_KEY, userId.toString())
+        val score = stringRedisTemplate.opsForZSet().score(ACTIVE_QUEUE_KEY, userId.toString())
         return score != null
     }
 
@@ -140,7 +143,7 @@ class RedisQueueRepository(
      * ACTIVE에서 사용자 제거 (토큰 만료 처리)
      */
     fun removeFromActiveQueue(userId: Long) {
-        redisTemplate.opsForZSet().remove(ACTIVE_QUEUE_KEY, userId.toString())
+        stringRedisTemplate.opsForZSet().remove(ACTIVE_QUEUE_KEY, userId.toString())
         redisTemplate.delete("$TOKEN_KEY_PREFIX$userId")
     }
 
@@ -149,7 +152,7 @@ class RedisQueueRepository(
      */
     fun saveTokenEntity(entity: QueueTokenRedisEntity) {
         val tokenKey = "$TOKEN_KEY_PREFIX${entity.userId}"
-        redisTemplate.opsForHash<String, Any>().putAll(tokenKey, entity.toHash())
+        stringRedisTemplate.opsForHash<String, String>().putAll(tokenKey, entity.toHash().mapValues { it.value.toString() })
     }
 
     /**
@@ -157,7 +160,7 @@ class RedisQueueRepository(
      */
     fun getTokenEntity(userId: Long): QueueTokenRedisEntity? {
         val tokenKey = "$TOKEN_KEY_PREFIX$userId"
-        val hash = redisTemplate.opsForHash<String, Any>().entries(tokenKey)
+        val hash = stringRedisTemplate.opsForHash<String, String>().entries(tokenKey)
         return if (hash.isEmpty()) null else QueueTokenRedisEntity.fromHash(hash)
     }
 
@@ -165,9 +168,9 @@ class RedisQueueRepository(
      * WAITING Queue의 모든 사용자 조회
      */
     fun getAllWaitingUsers(): List<Long> {
-        return redisTemplate.opsForZSet()
+        return stringRedisTemplate.opsForZSet()
             .range(WAITING_QUEUE_KEY, 0, -1)
-            ?.map { it.toString().toLong() }
+            ?.map { it.toLong() }
             ?: emptyList()
     }
 
@@ -175,9 +178,9 @@ class RedisQueueRepository(
      * ACTIVE Queue의 모든 사용자 조회
      */
     fun getAllActiveUsers(): List<Long> {
-        return redisTemplate.opsForZSet()
+        return stringRedisTemplate.opsForZSet()
             .range(ACTIVE_QUEUE_KEY, 0, -1)
-            ?.map { it.toString().toLong() }
+            ?.map { it.toLong() }
             ?: emptyList()
     }
 
