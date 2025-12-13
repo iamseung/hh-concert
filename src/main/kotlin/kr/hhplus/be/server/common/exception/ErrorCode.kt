@@ -48,6 +48,10 @@ enum class ErrorCode(
     PAYMENT_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 결제가 완료되었습니다"),
     DUPLICATE_USER(HttpStatus.BAD_REQUEST, "중복된 유저입니다"),
 
+    // Lock Errors (500)
+    LOCK_ACQUISITION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "락 획득에 실패했습니다"),
+    LOCK_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "락 획득 중 인터럽트가 발생했습니다"),
+
     // Server Errors (500)
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다"),
     DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 오류가 발생했습니다"),

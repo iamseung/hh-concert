@@ -184,8 +184,8 @@ class RetryMechanismTest {
         // H2: 약 2초 (단일 타임아웃)
         // MySQL: 약 3초 (단일 타임아웃)
         val totalDuration = endTime.get() - startTime.get()
-        assertThat(totalDuration).isGreaterThan(1500)  // 최소 1.5초
-        assertThat(totalDuration).isLessThan(7000)     // 최대 7초
+        assertThat(totalDuration).isGreaterThan(1500) // 최소 1.5초
+        assertThat(totalDuration).isLessThan(7000) // 최대 7초
 
         println("✅ Failed after max retries")
         println("   Total duration: ${totalDuration}ms")

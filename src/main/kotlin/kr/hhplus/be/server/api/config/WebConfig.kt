@@ -17,7 +17,6 @@ class WebConfig(
         registry.addInterceptor(queueTokenInterceptor)
             .addPathPatterns(
                 "/api/v1/concerts/*/reservations", // 좌석 예약
-                "/api/v1/payments", // 결제
             )
             .excludePathPatterns(
                 "/api/v1/concerts/*/reservations", // 예약 조회는 제외 (GET)
