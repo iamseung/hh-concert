@@ -15,6 +15,13 @@ class SeatService(
         return seat
     }
 
+    fun findByIdAndConcertScheduleId(seatId: Long, scheduleId: Long): SeatModel {
+        val seat = seatRepository.findByIdOrThrow(seatId)
+        seat.validateMatch(scheduleId)
+
+        return seat
+    }
+
     fun findById(seatId: Long): SeatModel {
         return seatRepository.findByIdOrThrow(seatId)
     }

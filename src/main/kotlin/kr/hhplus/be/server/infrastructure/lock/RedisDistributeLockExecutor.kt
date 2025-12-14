@@ -27,7 +27,7 @@ class RedisDistributeLockExecutor(
         lockKey: String,
         waitMilliSeconds: Long,
         leaseMilliSeconds: Long,
-        logic: () -> T,
+        action: () -> T,
     ): T {
         require(waitMilliSeconds >= 0) { "waitMilliSeconds must be non-negative" }
         require(leaseMilliSeconds > 0) { "leaseMilliSeconds must be positive" }
@@ -36,7 +36,7 @@ class RedisDistributeLockExecutor(
         val acquired = acquireLock(lock, lockKey, waitMilliSeconds, leaseMilliSeconds)
 
         return try {
-            logic()
+            action()
         } finally {
             releaseLock(lock, lockKey, acquired)
         }

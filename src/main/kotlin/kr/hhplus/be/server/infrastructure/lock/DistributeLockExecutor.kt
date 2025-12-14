@@ -14,6 +14,6 @@ interface DistributeLockExecutor {
         lockKey: String,
         waitMilliSeconds: Long,
         leaseMilliSeconds: Long,
-        logic: () -> T,
+        action: () -> T,
     ): T
 }
