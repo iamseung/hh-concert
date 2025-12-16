@@ -6,6 +6,7 @@ import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.service.UserService
+import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
 import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
 import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
 import org.springframework.stereotype.Component
@@ -19,6 +20,7 @@ class CreateReservationUseCase(
     private val concertScheduleService: ConcertScheduleService,
     private val distributeLockExecutor: DistributeLockExecutor,
     private val transactionExecutor: TransactionExecutor,
+    private val seatCacheService: SeatCacheService,
 ) {
 
     /**
@@ -80,6 +82,10 @@ class CreateReservationUseCase(
                 newReservation
             }
         }
+
+        // 5. 좌석 캐시 무효화 (트랜잭션 커밋 후)
+        // 좌석 상태가 변경되었으므로 해당 일정의 좌석 캐시를 삭제하여 다음 조회 시 최신 상태 반영
+        seatCacheService.evictAvailableSeats(command.scheduleId)
 
         return CreateReservationResult(
             reservationId = reservation.id,

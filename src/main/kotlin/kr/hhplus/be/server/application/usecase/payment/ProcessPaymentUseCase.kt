@@ -9,6 +9,7 @@ import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.service.UserService
+import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
 import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
 import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
 import org.springframework.stereotype.Component
@@ -24,6 +25,7 @@ class ProcessPaymentUseCase(
     private val queueTokenService: QueueTokenService,
     private val distributeLockExecutor: DistributeLockExecutor,
     private val transactionExecutor: TransactionExecutor,
+    private val seatCacheService: SeatCacheService,
 ) {
 
     /**
@@ -97,6 +99,10 @@ class ProcessPaymentUseCase(
                 paymentModel
             }
         }
+
+        // 5. 좌석 캐시 무효화 (트랜잭션 커밋 후)
+        // 좌석 상태가 TEMPORARY_RESERVED → RESERVED로 변경되었으므로 캐시 삭제
+        seatCacheService.evictAvailableSeats(seat.concertScheduleId)
 
         // 6. 결과 반환
         return ProcessPaymentResult(
