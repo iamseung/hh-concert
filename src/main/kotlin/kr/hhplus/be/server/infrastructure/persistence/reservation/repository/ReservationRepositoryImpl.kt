@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.reservation.repository.ReservationRepository
 import kr.hhplus.be.server.infrastructure.persistence.reservation.entity.Reservation
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 class ReservationRepositoryImpl(
@@ -43,7 +44,7 @@ class ReservationRepositoryImpl(
         return reservationJpaRepository.findAllByUserId(userId).map { it.toModel() }
     }
 
-    override fun findExpiredReservationSeatIds(now: java.time.LocalDateTime): List<Long> {
+    override fun findExpiredReservationSeatIds(now: LocalDateTime): List<Long> {
         return reservationJpaRepository.findExpiredReservationSeatIds(now)
     }
 }

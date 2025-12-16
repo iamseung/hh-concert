@@ -38,9 +38,7 @@ class SeatScheduler(
             }
 
             // 만료된 좌석 정보 조회 (캐시 무효화를 위해 scheduleId 필요)
-            val expiredSeats = expiredSeatIds.map { seatId ->
-                seatService.findById(seatId)
-            }
+            val expiredSeats = seatService.findAllById(expiredSeatIds)
 
             // 좌석 복원
             val restoredCount = seatService.restoreExpiredSeats(expiredSeatIds)

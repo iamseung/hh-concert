@@ -26,6 +26,10 @@ class SeatService(
         return seatRepository.findByIdOrThrow(seatId)
     }
 
+    fun findAllById(seatIds: List<Long>): List<SeatModel> {
+        return seatRepository.findAllById(seatIds)
+    }
+
     fun findAllByConcertScheduleId(scheduleId: Long): List<SeatModel> {
         return seatRepository.findAllByConcertScheduleId(scheduleId)
     }

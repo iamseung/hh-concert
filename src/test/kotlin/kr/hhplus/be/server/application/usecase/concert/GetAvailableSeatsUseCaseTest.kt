@@ -83,6 +83,7 @@ class GetAvailableSeatsUseCaseTest {
 
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findById(scheduleId) } returns schedule
+        every { seatCacheService.getAvailableSeats(scheduleId) } returns null
         every { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) } returns listOf(seat1, seat2)
 
         // when
@@ -122,6 +123,7 @@ class GetAvailableSeatsUseCaseTest {
 
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findById(scheduleId) } returns schedule
+        every { seatCacheService.getAvailableSeats(scheduleId) } returns null
         every { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) } returns emptyList()
 
         // when

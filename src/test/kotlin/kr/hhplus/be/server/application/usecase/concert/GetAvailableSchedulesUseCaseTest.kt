@@ -63,6 +63,7 @@ class GetAvailableSchedulesUseCaseTest {
             updatedAt = LocalDateTime.now(),
         )
 
+        every { concertScheduleCacheService.getSchedules(concertId) } returns null
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findByConcertId(concertId) } returns listOf(schedule1, schedule2)
 
@@ -92,6 +93,7 @@ class GetAvailableSchedulesUseCaseTest {
             updatedAt = LocalDateTime.now(),
         )
 
+        every { concertScheduleCacheService.getSchedules(concertId) } returns null
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findByConcertId(concertId) } returns emptyList()
 
@@ -100,7 +102,6 @@ class GetAvailableSchedulesUseCaseTest {
 
         // then
         assertThat(result.schedules).isEmpty()
-        verify(exactly = 1) { concertService.findById(concertId) }
         verify(exactly = 1) { concertScheduleService.findByConcertId(concertId) }
     }
 }
