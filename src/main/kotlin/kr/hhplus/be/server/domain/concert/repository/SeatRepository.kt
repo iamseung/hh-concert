@@ -12,4 +12,5 @@ interface SeatRepository {
     fun findAllByConcertScheduleIdAndStatus(concertScheduleId: Long, status: SeatStatus): List<SeatModel>
     fun findAllByStatus(status: SeatStatus): List<SeatModel>
     fun bulkRestoreExpiredSeats(seatIds: List<Long>): Int
+    fun findAllById(seatIds: List<Long>): List<SeatModel>
 }

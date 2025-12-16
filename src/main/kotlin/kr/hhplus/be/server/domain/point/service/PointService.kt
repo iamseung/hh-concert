@@ -17,7 +17,7 @@ class PointService(
 
     @Transactional
     fun chargePoint(userId: Long, amount: Int): PointModel {
-        val point = pointRepository.findByUserIdWithLock(userId)
+        val point = pointRepository.findByUserIdOrThrow(userId)
         point.chargePoint(amount)
 
         return pointRepository.update(point)
@@ -25,7 +25,7 @@ class PointService(
 
     @Transactional
     fun usePoint(userId: Long, amount: Int): PointModel {
-        val point = pointRepository.findByUserIdWithLock(userId)
+        val point = pointRepository.findByUserIdOrThrow(userId)
         point.usePoint(amount)
 
         return pointRepository.update(point)

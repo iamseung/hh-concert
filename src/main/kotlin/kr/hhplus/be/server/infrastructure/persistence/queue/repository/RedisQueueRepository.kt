@@ -141,10 +141,11 @@ class RedisQueueRepository(
 
     /**
      * ACTIVE에서 사용자 제거 (토큰 만료 처리)
+     * 토큰 엔티티는 삭제하지 않고 ACTIVE queue에서만 제거
      */
     fun removeFromActiveQueue(userId: Long) {
         stringRedisTemplate.opsForZSet().remove(ACTIVE_QUEUE_KEY, userId.toString())
-        redisTemplate.delete("$TOKEN_KEY_PREFIX$userId")
+        // 토큰 엔티티는 유지 (EXPIRED 상태로 조회 가능해야 함)
     }
 
     /**

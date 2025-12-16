@@ -10,6 +10,7 @@ import kr.hhplus.be.server.domain.concert.model.SeatStatus
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.ConcertService
 import kr.hhplus.be.server.domain.concert.service.SeatService
+import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -22,17 +23,20 @@ class GetAvailableSeatsUseCaseTest {
     private lateinit var concertService: ConcertService
     private lateinit var concertScheduleService: ConcertScheduleService
     private lateinit var seatService: SeatService
+    private lateinit var seatCacheService: SeatCacheService
 
     @BeforeEach
     fun setUp() {
         concertService = mockk()
         concertScheduleService = mockk()
         seatService = mockk()
+        seatCacheService = mockk(relaxed = true)
 
         getAvailableSeatsUseCase = GetAvailableSeatsUseCase(
             concertService = concertService,
             concertScheduleService = concertScheduleService,
             seatService = seatService,
+            seatCacheService = seatCacheService,
         )
     }
 
@@ -79,6 +83,7 @@ class GetAvailableSeatsUseCaseTest {
 
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findById(scheduleId) } returns schedule
+        every { seatCacheService.getAvailableSeats(scheduleId) } returns null
         every { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) } returns listOf(seat1, seat2)
 
         // when
@@ -118,6 +123,7 @@ class GetAvailableSeatsUseCaseTest {
 
         every { concertService.findById(concertId) } returns concert
         every { concertScheduleService.findById(scheduleId) } returns schedule
+        every { seatCacheService.getAvailableSeats(scheduleId) } returns null
         every { seatService.findAvailableSeatsByConcertScheduleId(scheduleId) } returns emptyList()
 
         // when

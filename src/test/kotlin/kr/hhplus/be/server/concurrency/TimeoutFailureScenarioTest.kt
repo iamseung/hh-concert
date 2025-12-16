@@ -330,7 +330,7 @@ class TimeoutFailureScenarioTest {
 
         // Then: 타임아웃 시간 내에 실패 (H2: ~2초, MySQL: ~3초)
         assertThat(attemptDuration).isGreaterThan(1500) // 최소 1.5초
-        assertThat(attemptDuration).isLessThan(4000)    // 최대 4초
+        assertThat(attemptDuration).isLessThan(4000) // 최대 4초
 
         println("✅ Failed fast within timeout period: ${attemptDuration}ms")
         println("   Note: H2 (~2s) may differ from MySQL (~3s)")

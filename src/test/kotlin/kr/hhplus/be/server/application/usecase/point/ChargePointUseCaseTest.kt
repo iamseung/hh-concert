@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.usecase.point
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kr.hhplus.be.server.common.exception.BusinessException
 import kr.hhplus.be.server.common.exception.ErrorCode
@@ -11,6 +12,8 @@ import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
+import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
+import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -24,17 +27,39 @@ class ChargePointUseCaseTest {
     private lateinit var userService: UserService
     private lateinit var pointService: PointService
     private lateinit var pointHistoryService: PointHistoryService
+    private lateinit var distributeLockExecutor: DistributeLockExecutor
+    private lateinit var transactionExecutor: TransactionExecutor
 
     @BeforeEach
     fun setUp() {
         userService = mockk()
         pointService = mockk()
         pointHistoryService = mockk()
+        distributeLockExecutor = mockk()
+        transactionExecutor = mockk()
+
+        // Mock the lock executor to just execute the logic
+        every {
+            distributeLockExecutor.execute<Any>(any(), any(), any(), any())
+        } answers {
+            val logic = arg<() -> Any>(3)
+            logic()
+        }
+
+        // Mock the transaction executor to just execute the logic
+        every {
+            transactionExecutor.execute<Any>(any())
+        } answers {
+            val action = arg<() -> Any>(0)
+            action()
+        }
 
         chargePointUseCase = ChargePointUseCase(
             userService = userService,
             pointService = pointService,
             pointHistoryService = pointHistoryService,
+            distributeLockExecutor = distributeLockExecutor,
+            transactionExecutor = transactionExecutor,
         )
     }
 

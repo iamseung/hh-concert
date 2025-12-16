@@ -169,7 +169,7 @@ class LockTimeoutTest {
         // Then: 타임아웃이 2~4초 사이에 발생 (H2는 MySQL과 다를 수 있음)
         val actualTimeout = timeoutDuration.get()
         assertThat(actualTimeout).isGreaterThan(1500) // 최소 1.5초
-        assertThat(actualTimeout).isLessThan(4500)   // 최대 4.5초
+        assertThat(actualTimeout).isLessThan(4500) // 최대 4.5초
 
         println("✅ Lock Timeout Duration: ${actualTimeout}ms (expected ~2000-3000ms)")
         println("   Note: H2 may have different timeout behavior than MySQL")
