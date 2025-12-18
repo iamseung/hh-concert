@@ -7,7 +7,6 @@ import kr.hhplus.be.server.domain.concert.model.SeatStatus
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.payment.service.PaymentService
 import kr.hhplus.be.server.domain.point.service.PointService
-import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
 import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
@@ -314,14 +313,16 @@ class DistributedLockPaymentTest @Autowired constructor(
         val resultReservation = reservationService.findById(reservation.id)
         assertThat(resultReservation.reservationStatus).isEqualTo(ReservationStatus.CONFIRMED)
 
-        println("""
+        println(
+            """
             ✅ 원자성 보장: 6개 작업 함께 커밋
-            - 포인트 차감: ${initialBalance} → ${resultPoint.balance}
+            - 포인트 차감: $initialBalance → ${resultPoint.balance}
             - 히스토리 기록: +1
             - 결제 생성: ${result.paymentId}
             - 좌석 상태: TEMPORARY_RESERVED → RESERVED
             - 예약 상태: TEMPORARY → CONFIRMED
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 
     @Test
@@ -441,13 +442,15 @@ class DistributedLockPaymentTest @Autowired constructor(
         assertThat(payments.size).isGreaterThanOrEqualTo(paymentCount)
         assertThat(avgDuration).isLessThan(500) // 평균 500ms 이하
 
-        println("""
+        println(
+            """
             ✅ 성능 측정 (READ 작업 락 밖):
             - 총 요청: $paymentCount 회
             - 총 소요시간: ${totalDuration}ms
             - 평균 처리시간: ${avgDuration}ms
             - 결제 생성 수: ${payments.size}
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 
     @Test

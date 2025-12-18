@@ -243,13 +243,15 @@ class DistributedLockChargePointTest {
         assertThat(result.balance).isEqualTo(expectedBalance)
         assertThat(avgDuration).isLessThan(500) // 평균 500ms 이하
 
-        println("""
+        println(
+            """
             ✅ 성능 측정:
             - 총 요청: $chargeCount 회
             - 총 소요시간: ${totalDuration}ms
             - 평균 처리시간: ${avgDuration}ms
             - 최종 잔액: ${result.balance}
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 
     @Test

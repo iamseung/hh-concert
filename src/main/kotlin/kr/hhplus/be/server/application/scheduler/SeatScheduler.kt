@@ -52,7 +52,7 @@ class SeatScheduler(
             if (restoredCount > 0) {
                 log.info(
                     "Restored $restoredCount expired temporary seats to AVAILABLE, " +
-                        "invalidated cache for ${affectedScheduleIds.size} schedules"
+                        "invalidated cache for ${affectedScheduleIds.size} schedules",
                 )
             }
         } catch (e: Exception) {

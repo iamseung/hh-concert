@@ -115,14 +115,16 @@ class SeatCachePerformanceTest @Autowired constructor(
         val cachedAvgTime = (secondCallTime + thirdCallTime) / 2
         val speedup = firstCallTime.toDouble() / cachedAvgTime
 
-        println("""
+        println(
+            """
             ✅ 캐시 적용 성능 비교:
             - 1차 호출 (캐시 MISS): ${firstCallTime}ms
             - 2차 호출 (캐시 HIT): ${secondCallTime}ms
             - 3차 호출 (캐시 HIT): ${thirdCallTime}ms
             - 캐시 평균 응답시간: ${cachedAvgTime}ms
             - 성능 개선: ${String.format("%.2f", speedup)}배 향상
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         // 캐시 히트가 더 빠르거나 비슷해야 함 (여유있게 검증)
         assertThat(cachedAvgTime).isLessThanOrEqualTo(firstCallTime * 2)
@@ -158,13 +160,15 @@ class SeatCachePerformanceTest @Autowired constructor(
 
         val avgTime = totalTime / requestCount
 
-        println("""
+        println(
+            """
             ✅ 동시 요청 처리 성능:
             - 총 요청 수: $requestCount
             - 총 소요 시간: ${totalTime}ms
             - 평균 응답 시간: ${avgTime}ms
             - 초당 처리량 (TPS): ${requestCount * 1000 / totalTime}
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         // 평균 응답시간이 합리적인 범위 내에 있는지 확인
         assertThat(avgTime).isLessThan(100) // 평균 100ms 이하
