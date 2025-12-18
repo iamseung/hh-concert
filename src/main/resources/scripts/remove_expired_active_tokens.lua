@@ -21,8 +21,16 @@ for i, userId in ipairs(expiredUserIds) do
     -- 2-1. ACTIVE Queue에서 제거
     redis.call('ZREM', activeKey, userId)
 
-    -- 2-2. Token Entity Hash 삭제
+    -- 2-2. Token Entity Hash에서 token 값 조회
     local tokenKey = 'queue:token:' .. userId
+    local token = redis.call('HGET', tokenKey, 'token')
+
+    -- 2-3. Token → UserId 매핑 삭제 (메모리 누수 방지)
+    if token then
+        redis.call('DEL', 'queue:token_to_userid:' .. token)
+    end
+
+    -- 2-4. Token Entity Hash 삭제
     redis.call('DEL', tokenKey)
 end
 

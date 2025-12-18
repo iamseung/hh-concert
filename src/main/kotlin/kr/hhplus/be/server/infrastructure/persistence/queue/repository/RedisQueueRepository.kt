@@ -149,11 +149,60 @@ class RedisQueueRepository(
     }
 
     /**
+     * Token → UserId 매핑 삭제 (메모리 누수 방지)
+     */
+    fun removeTokenMapping(token: String) {
+        redisTemplate.delete("$TOKEN_TO_USERID_KEY$token")
+    }
+
+    /**
      * Token Entity 저장
      */
     fun saveTokenEntity(entity: QueueTokenRedisEntity) {
         val tokenKey = "$TOKEN_KEY_PREFIX${entity.userId}"
         stringRedisTemplate.opsForHash<String, String>().putAll(tokenKey, entity.toHash().mapValues { it.value.toString() })
+    }
+
+    /**
+     * 원자적 토큰 생성 (중복 토큰 방지)
+     * 이미 존재하면 기존 토큰 반환, 없으면 새로 생성
+     */
+    fun findOrCreateTokenAtomic(userId: Long): QueueTokenModel {
+        // 1. 기존 토큰 확인 (ACTIVE 또는 WAITING)
+        val existingToken = getTokenEntity(userId)
+        if (existingToken != null) {
+            return existingToken.toModel()
+        }
+
+        // 2. 신규 토큰 생성 (WAITING 상태로)
+        val newToken = QueueTokenModel.create(userId)
+        val entity = QueueTokenRedisEntity.fromDomain(newToken)
+
+        // 3. 토큰 저장 (원자적 연산)
+        val tokenKey = "$TOKEN_KEY_PREFIX${entity.userId}"
+        val saved = stringRedisTemplate.opsForHash<String, String>()
+            .putIfAbsent(tokenKey, "userId", entity.userId.toString())
+
+        // 4. 이미 다른 요청이 저장했다면 기존 토큰 반환
+        if (saved == false) {
+            return getTokenEntity(userId)?.toModel()
+                ?: throw BusinessException(ErrorCode.QUEUE_TOKEN_NOT_FOUND)
+        }
+
+        // 5. 나머지 필드 저장
+        stringRedisTemplate.opsForHash<String, String>()
+            .putAll(tokenKey, entity.toHash().mapValues { it.value.toString() })
+
+        // 6. Token → UserId 매핑 저장
+        redisTemplate.opsForValue().set(
+            "$TOKEN_TO_USERID_KEY${newToken.token}",
+            newToken.userId,
+        )
+
+        // 7. WAITING Queue에 추가
+        addToWaitingQueue(userId)
+
+        return newToken
     }
 
     /**

@@ -11,23 +11,8 @@ class QueueTokenService(
 ) {
 
     fun createQueueToken(userId: Long): QueueTokenModel {
-        // Redis에서 ACTIVE 상태 확인
-        if (redisQueueRepository.isInActiveQueue(userId)) {
-            return redisQueueRepository.findAllByStatus(QueueStatus.ACTIVE)
-                .find { it.userId == userId }
-                ?: createAndSaveToken(userId, QueueStatus.ACTIVE)
-        }
-
-        // Redis에서 WAITING 상태 확인
-        if (redisQueueRepository.isInWaitingQueue(userId)) {
-            return redisQueueRepository.findAllByStatus(QueueStatus.WAITING)
-                .find { it.userId == userId }
-                ?: createAndSaveToken(userId, QueueStatus.WAITING)
-        }
-
-        // 신규 사용자 - Redis 대기열에 추가
-        redisQueueRepository.addToWaitingQueue(userId)
-        return createAndSaveToken(userId, QueueStatus.WAITING)
+        // 원자적으로 토큰 조회 또는 생성 (중복 토큰 방지)
+        return redisQueueRepository.findOrCreateTokenAtomic(userId)
     }
 
     private fun createAndSaveToken(userId: Long, status: QueueStatus): QueueTokenModel {
@@ -52,6 +37,7 @@ class QueueTokenService(
     fun expireQueueToken(queueTokenModel: QueueTokenModel): QueueTokenModel {
         queueTokenModel.expire()
         redisQueueRepository.removeFromActiveQueue(queueTokenModel.userId)
+        redisQueueRepository.removeTokenMapping(queueTokenModel.token)  // 매핑 삭제 (메모리 누수 방지)
         return redisQueueRepository.update(queueTokenModel)
     }
 
