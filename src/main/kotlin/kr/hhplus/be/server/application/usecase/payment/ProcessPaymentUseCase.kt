@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.application.usecase.payment
 
+import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
+import kr.hhplus.be.server.domain.concert.service.ConcertService
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.service.PaymentService
@@ -7,11 +9,13 @@ import kr.hhplus.be.server.domain.point.model.TransactionType
 import kr.hhplus.be.server.domain.point.service.PointHistoryService
 import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
+import kr.hhplus.be.server.domain.reservation.event.ReservationConfirmedEvent
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.service.UserService
 import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
 import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
 import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,6 +23,8 @@ class ProcessPaymentUseCase(
     private val userService: UserService,
     private val reservationService: ReservationService,
     private val seatService: SeatService,
+    private val concertScheduleService: ConcertScheduleService,
+    private val concertService: ConcertService,
     private val pointService: PointService,
     private val pointHistoryService: PointHistoryService,
     private val paymentService: PaymentService,
@@ -26,6 +32,7 @@ class ProcessPaymentUseCase(
     private val distributeLockExecutor: DistributeLockExecutor,
     private val transactionExecutor: TransactionExecutor,
     private val seatCacheService: SeatCacheService,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     /**
@@ -81,7 +88,7 @@ class ProcessPaymentUseCase(
 
                 // 결제 생성
                 val paymentModel = paymentService.savePayment(
-                    PaymentModel.create(command.reservationId, user.id, seat.price)
+                    PaymentModel.create(command.reservationId, user.id, seat.price),
                 )
 
                 // 좌석 예약 확정
@@ -104,7 +111,19 @@ class ProcessPaymentUseCase(
         // 좌석 상태가 TEMPORARY_RESERVED → RESERVED로 변경되었으므로 캐시 삭제
         seatCacheService.evictAvailableSeats(seat.concertScheduleId)
 
-        // 6. 결과 반환
+        // 6. 랭킹 업데이트 이벤트 발행 (트랜잭션 커밋 후 비동기 처리)
+        val schedule = concertScheduleService.findById(seat.concertScheduleId)
+        val concert = concertService.findById(schedule.concertId)
+        eventPublisher.publishEvent(
+            ReservationConfirmedEvent(
+                reservationId = payment.reservationId,
+                concertId = concert.id,
+                concertTitle = concert.title,
+                userId = payment.userId,
+            ),
+        )
+
+        // 7. 결과 반환
         return ProcessPaymentResult(
             paymentId = payment.id,
             reservationId = payment.reservationId,
