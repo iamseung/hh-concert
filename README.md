@@ -325,7 +325,7 @@ curl http://localhost:8080/actuator/health
 
 API 명세는 OpenAPI 3.0 형식으로 작성되어 있습니다.
 
-- **파일 위치**: [`docs/openapi.yml`](./docs/openapi.yml)
+- **파일 위치**: [`docs/openapi.yml`](docs/project/openapi.yml)
 - **Swagger UI**: `http://localhost:8080/swagger-ui.html` (실행 후)
 
 ### 주요 API 엔드포인트
@@ -391,9 +391,9 @@ kotlin-server/
 
 더 자세한 정보는 다음 문서를 참고하세요:
 
-- **[API 명세서](./docs/openapi.yml)**: 전체 API 스펙 (OpenAPI 3.0)
-- **[ERD 다이어그램](./docs/erd.md)**: 데이터베이스 스키마 설계
-- **[인프라 구성도](./docs/infra.md)**: 상세 아키텍처 및 ADR
+- **[API 명세서](docs/project/openapi.yml)**: 전체 API 스펙 (OpenAPI 3.0)
+- **[ERD 다이어그램](docs/project/erd.md)**: 데이터베이스 스키마 설계
+- **[인프라 구성도](docs/project/infra.md)**: 상세 아키텍처 및 ADR
 
 ---
 

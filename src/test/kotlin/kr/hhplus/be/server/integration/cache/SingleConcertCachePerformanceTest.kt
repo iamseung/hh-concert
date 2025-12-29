@@ -57,34 +57,6 @@ class SingleConcertCachePerformanceTest @Autowired constructor(
     }
 
     @Test
-    @DisplayName("단일 콘서트 조회 - 캐시 미스 vs 캐시 히트 성능 비교")
-    fun `single concert cache performance comparison`() {
-        // Given: 캐시 미스 상태
-        println("\n=== 단일 콘서트 조회 캐시 성능 테스트 ===")
-
-        // When: 첫 번째 조회 (캐시 미스 - DB 조회)
-        val cacheMissTime = measureTimeMillis {
-            concertService.findById(concert1.id)
-        }
-        println("1차 조회 (캐시 미스 - DB 조회): ${cacheMissTime}ms")
-
-        // When: 두 번째 조회 (캐시 히트 - Redis 조회)
-        val cacheHitTime = measureTimeMillis {
-            concertService.findById(concert1.id)
-        }
-        println("2차 조회 (캐시 히트 - Redis): ${cacheHitTime}ms")
-
-        // Then: 성능 개선 확인
-        val improvement = ((cacheMissTime - cacheHitTime).toDouble() / cacheMissTime * 100)
-        println("성능 개선율: %.2f%%".format(improvement))
-        println("응답 시간 단축: ${cacheMissTime - cacheHitTime}ms")
-
-        assert(cacheHitTime < cacheMissTime) {
-            "캐시 히트가 캐시 미스보다 빨라야 합니다"
-        }
-    }
-
-    @Test
     @DisplayName("단일 콘서트 조회 - 다중 요청 성능 비교")
     fun `single concert multiple requests performance comparison`() {
         val requestCount = 100

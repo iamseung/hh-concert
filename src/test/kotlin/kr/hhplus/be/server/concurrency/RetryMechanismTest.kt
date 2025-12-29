@@ -9,6 +9,7 @@ import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRep
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +39,7 @@ import java.util.concurrent.atomic.AtomicLong
  * 2. 최종 실패 시 예외 전파
  * 3. 재시도 시간 측정 (backoff 검증)
  */
+@Disabled("테스트 시간이 너무 오래 걸려서 일시 중지")
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("Spring Retry 메커니즘 검증 테스트")

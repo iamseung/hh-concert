@@ -34,7 +34,7 @@ class SeatSchedulerTest {
                 seatStatus = SeatStatus.TEMPORARY_RESERVED,
                 price = 10000,
                 createdAt = now,
-                updatedAt = now
+                updatedAt = now,
             )
         }
         val expectedRestoredCount = 3

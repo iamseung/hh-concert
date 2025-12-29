@@ -37,7 +37,7 @@ class QueueTokenService(
     fun expireQueueToken(queueTokenModel: QueueTokenModel): QueueTokenModel {
         queueTokenModel.expire()
         redisQueueRepository.removeFromActiveQueue(queueTokenModel.userId)
-        redisQueueRepository.removeTokenMapping(queueTokenModel.token)  // 매핑 삭제 (메모리 누수 방지)
+        redisQueueRepository.removeTokenMapping(queueTokenModel.token) // 매핑 삭제 (메모리 누수 방지)
         return redisQueueRepository.update(queueTokenModel)
     }
 

@@ -231,8 +231,11 @@ class RedisQueueRepository(
 
         // Map<String, String>을 QueueTokenRedisEntity로 변환
         return hashMaps.map { hash ->
-            if (hash.isEmpty()) null
-            else QueueTokenRedisEntity.fromHash(hash)
+            if (hash.isEmpty()) {
+                null
+            } else {
+                QueueTokenRedisEntity.fromHash(hash)
+            }
         }
     }
 
