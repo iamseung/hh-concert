@@ -99,7 +99,7 @@ class DataPlatformClientTest {
         // Then
         val capturedHeaders = headersSlot.captured
         assertThat(capturedHeaders).containsKey("X-Idempotency-Key")
-        assertThat(capturedHeaders["X-Idempotency-Key"]).startsWith("reservation-1-")
+        assertThat(capturedHeaders["X-Idempotency-Key"]).isEqualTo("reservation-1")
     }
 
     @Test
@@ -162,8 +162,8 @@ class DataPlatformClientTest {
     }
 
     @Test
-    @DisplayName("동일 reservationId로 여러 번 호출 시 다른 멱등성 키 생성")
-    fun `should generate different idempotency keys for same reservationId`() {
+    @DisplayName("동일 reservationId로 여러 번 호출 시 같은 멱등성 키 생성")
+    fun `should generate same idempotency key for same reservationId`() {
         // Given
         val event = ReservationConfirmedEvent(
             reservationId = 1L,
@@ -184,7 +184,6 @@ class DataPlatformClientTest {
 
         // When
         client.sendReservation(event).subscribe()
-        Thread.sleep(10) // timestamp 차이를 위한 대기
         client.sendReservation(event).subscribe()
 
         // Then
@@ -192,9 +191,9 @@ class DataPlatformClientTest {
         val key1 = headersList[0]["X-Idempotency-Key"]
         val key2 = headersList[1]["X-Idempotency-Key"]
 
-        assertThat(key1).isNotEqualTo(key2)
-        assertThat(key1).startsWith("reservation-1-")
-        assertThat(key2).startsWith("reservation-1-")
+        // 멱등성 보장: 동일 이벤트는 항상 같은 키를 생성해야 함
+        assertThat(key1).isEqualTo(key2)
+        assertThat(key1).isEqualTo("reservation-1")
     }
 
     @Test

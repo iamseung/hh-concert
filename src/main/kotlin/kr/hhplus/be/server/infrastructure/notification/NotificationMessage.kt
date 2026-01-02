@@ -47,9 +47,9 @@ data class NotificationMessage(
  * 알림 색상 열거형
  */
 enum class NotificationColor(val rgbValue: Int) {
-    SUCCESS(0x00FF00),  // 녹색
-    ERROR(0xFF0000),    // 빨강
-    WARNING(0xFFA500),  // 주황
-    INFO(0x0000FF),     // 파란색
-    DEFAULT(0x808080),  // 회색
+    SUCCESS(0x00FF00), // 녹색
+    ERROR(0xFF0000), // 빨강
+    WARNING(0xFFA500), // 주황
+    INFO(0x0000FF), // 파란색
+    DEFAULT(0x808080), // 회색
 }
