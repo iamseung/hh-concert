@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-network
+
+  kafka-1:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    networks:
+      - kafka-network
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-2
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29093,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    networks:
+      - kafka-network
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-3
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:29094,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    networks:
+      - kafka-network
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # Kafka 클러스터가 준비될 때까지 대기
+      echo 'Waiting for Kafka to be ready...'
+      cub kafka-ready -b kafka-1:29092 1 60
+
+      echo 'Creating topics...'
+
+      # 메인 토픽: reservation.confirmed
+      kafka-topics --create --if-not-exists \
+        --bootstrap-server kafka-1:29092 \
+        --topic reservation.confirmed \
+        --partitions 3 \
+        --replication-factor 3 \
+        --config min.insync.replicas=2 \
+        --config retention.ms=604800000
+
+      # DLQ 토픽: reservation.confirmed.dlq
+      kafka-topics --create --if-not-exists \
+        --bootstrap-server kafka-1:29092 \
+        --topic reservation.confirmed.dlq \
+        --partitions 3 \
+        --replication-factor 3 \
+        --config min.insync.replicas=2 \
+        --config retention.ms=2592000000
+
+      # 알림 토픽: notifications.payment-completed
+      kafka-topics --create --if-not-exists \
+        --bootstrap-server kafka-1:29092 \
+        --topic notifications.payment-completed \
+        --partitions 3 \
+        --replication-factor 3 \
+        --config min.insync.replicas=2 \
+        --config retention.ms=604800000
+
+      # 좌석 만료 토픽: seats.expired
+      kafka-topics --create --if-not-exists \
+        --bootstrap-server kafka-1:29092 \
+        --topic seats.expired \
+        --partitions 3 \
+        --replication-factor 3 \
+        --config min.insync.replicas=2 \
+        --config retention.ms=604800000
+
+      echo 'Topics created successfully!'
+
+      # 토픽 목록 확인
+      kafka-topics --list --bootstrap-server kafka-1:29092
+      "
+    networks:
+      - kafka-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - kafka-init
+    ports:
+      - "8989:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:29092,kafka-2:29093,kafka-3:29094
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - kafka-network
+
+networks:
+  kafka-network:
+    driver: bridge

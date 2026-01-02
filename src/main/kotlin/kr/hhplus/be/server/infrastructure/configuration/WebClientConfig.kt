@@ -75,4 +75,25 @@ class WebClientConfig(
      */
     @Bean
     fun dataPlatformCircuitBreaker() = circuitBreakerRegistry.circuitBreaker("dataPlatform")
+
+    /**
+     * Discord 알림용 WebClient 빈
+     *
+     * DiscordNotifier에서 사용하는 간단한 WebClient입니다.
+     * 타임아웃은 동일하게 설정합니다.
+     */
+    @Bean
+    fun webClient(): WebClient {
+        val httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSeconds.toInt() * 1000)
+            .responseTimeout(Duration.ofSeconds(timeoutSeconds))
+            .doOnConnected { conn ->
+                conn.addHandlerLast(ReadTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS))
+                    .addHandlerLast(WriteTimeoutHandler(timeoutSeconds, TimeUnit.SECONDS))
+            }
+
+        return WebClient.builder()
+            .clientConnector(ReactorClientHttpConnector(httpClient))
+            .build()
+    }
 }

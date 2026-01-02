@@ -1,34 +1,48 @@
 package kr.hhplus.be.server.application.scheduler
 
-import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
-import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
+import kr.hhplus.be.server.domain.seat.event.SeatExpiredEvent
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.time.LocalDateTime
 
+/**
+ * 좌석 스케줄러
+ *
+ * 역할:
+ * - 만료된 임시 예약 좌석을 주기적으로 확인
+ * - Kafka로 좌석 만료 이벤트 발행
+ *
+ * 개선 사항 (Kafka 적용):
+ * - Before: 스케줄러가 직접 좌석 복원 (동기 처리, DB 부하)
+ * - After: 스케줄러는 만료 확인만 수행, Kafka로 이벤트 발행 (비동기)
+ * - Consumer가 배치 단위로 좌석 복원 (부하 분산)
+ */
 @Component
 class SeatScheduler(
-    private val seatService: SeatService,
     private val reservationService: ReservationService,
-    private val seatCacheService: SeatCacheService,
+    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    @Value("\${kafka.topics.seat-expired}")
+    private val seatExpiredTopic: String,
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * 만료된 임시 좌석 복원
+     * 만료된 임시 좌석 확인 및 이벤트 발행
      * 매 1분마다 실행
      *
-     * 캐시 무효화:
-     * - 좌석 상태가 TEMPORARY_RESERVED → AVAILABLE로 변경되므로
-     * - 영향받은 scheduleId의 캐시를 모두 무효화
+     * 개선 효과:
+     * - 스케줄러는 만료 확인만 수행 (빠른 실행)
+     * - 실제 복원은 Consumer가 비동기 처리
+     * - 대량 좌석 만료 시에도 스케줄러 블로킹 없음
      */
     @Scheduled(fixedDelay = 60000)
-    @Transactional
-    fun restoreExpiredTemporarySeats() {
+    fun publishExpiredSeats() {
         try {
             val now = LocalDateTime.now()
             val expiredSeatIds = reservationService.findExpiredReservationSeatIds(now)
@@ -37,26 +51,37 @@ class SeatScheduler(
                 return
             }
 
-            // 만료된 좌석 정보 조회 (캐시 무효화를 위해 scheduleId 필요)
-            val expiredSeats = seatService.findAllById(expiredSeatIds)
+            log.info("Found ${expiredSeatIds.size} expired seats, publishing to Kafka")
 
-            // 좌석 복원
-            val restoredCount = seatService.restoreExpiredSeats(expiredSeatIds)
+            // Kafka로 좌석 만료 이벤트 발행
+            val event = SeatExpiredEvent(
+                seatIds = expiredSeatIds,
+                scheduleId = 0L, // TODO: scheduleId 추가 필요 (현재는 Consumer에서 조회)
+                expiredAt = Instant.now(),
+            )
 
-            // 영향받은 scheduleId 목록 추출 및 캐시 무효화
-            val affectedScheduleIds = expiredSeats.map { it.concertScheduleId }.distinct()
-            affectedScheduleIds.forEach { scheduleId ->
-                seatCacheService.evictAvailableSeats(scheduleId)
-            }
+            val future = kafkaTemplate.send(seatExpiredTopic, event)
 
-            if (restoredCount > 0) {
-                log.info(
-                    "Restored $restoredCount expired temporary seats to AVAILABLE, " +
-                        "invalidated cache for ${affectedScheduleIds.size} schedules",
-                )
+            future.whenComplete { result, ex ->
+                if (ex == null) {
+                    log.info(
+                        "좌석 만료 이벤트 발행 성공 - topic={}, partition={}, offset={}, seatCount={}",
+                        result.recordMetadata.topic(),
+                        result.recordMetadata.partition(),
+                        result.recordMetadata.offset(),
+                        expiredSeatIds.size,
+                    )
+                } else {
+                    log.error(
+                        "좌석 만료 이벤트 발행 실패 - seatCount={}, error={}",
+                        expiredSeatIds.size,
+                        ex.message,
+                        ex,
+                    )
+                }
             }
         } catch (e: Exception) {
-            log.error("Error while restoring expired temporary seats", e)
+            log.error("Error while publishing expired seats event", e)
         }
     }
 }

@@ -60,11 +60,15 @@ class DataPlatformClient(
     /**
      * 멱등성 키 생성
      *
-     * 형식: {prefix}-{id}-{timestamp}
-     * 예시: reservation-123-1234567890
+     * 형식: {prefix}-{id}
+     * 예시: reservation-123
+     *
+     * 중요: 동일한 이벤트에 대해 항상 같은 키가 생성되어야 함
+     * - timestamp를 포함하면 재처리 시 다른 키가 생성되어 멱등성이 깨짐
+     * - reservationId만으로 고유성 보장 가능
      */
     private fun generateIdempotencyKey(prefix: String, id: Long): String {
-        return "$prefix-$id-${System.currentTimeMillis()}"
+        return "$prefix-$id"
     }
 
     /**
