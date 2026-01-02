@@ -73,6 +73,8 @@ kafka:
   topics:
     reservation-confirmed: reservation.confirmed
     reservation-confirmed-dlq: reservation.confirmed.dlq
+    notification-payment-completed: notifications.payment-completed
+    seat-expired: seats.expired
   producer:
     key-serializer: org.apache.kafka.common.serialization.StringSerializer
     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -88,8 +90,14 @@ kafka:
     auto-offset-reset: earliest
     enable-auto-commit: false  # 수동 커밋
     properties:
-      spring.json.trusted.packages: kr.hhplus.be.server.domain.reservation.event
+      spring.json.trusted.packages: kr.hhplus.be.server.domain.reservation.event,kr.hhplus.be.server.domain.notification.event,kr.hhplus.be.server.domain.seat.event
       isolation.level: read_committed  # 트랜잭션 커밋된 메시지만 읽기
+
+# Discord Notification Configuration
+notification:
+  discord:
+    enabled: false  # true로 변경 시 Discord 알림 활성화
+    webhook-url: ${DISCORD_WEBHOOK_URL:}
 
 ---
 spring.config.activate.on-profile: local

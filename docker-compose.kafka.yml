@@ -109,6 +109,24 @@ services:
         --config min.insync.replicas=2 \
         --config retention.ms=2592000000
 
+      # 알림 토픽: notifications.payment-completed
+      kafka-topics --create --if-not-exists \
+        --bootstrap-server kafka-1:29092 \
+        --topic notifications.payment-completed \
+        --partitions 3 \
+        --replication-factor 3 \
+        --config min.insync.replicas=2 \
+        --config retention.ms=604800000
+
+      # 좌석 만료 토픽: seats.expired
+      kafka-topics --create --if-not-exists \
+        --bootstrap-server kafka-1:29092 \
+        --topic seats.expired \
+        --partitions 3 \
+        --replication-factor 3 \
+        --config min.insync.replicas=2 \
+        --config retention.ms=604800000
+
       echo 'Topics created successfully!'
 
       # 토픽 목록 확인
