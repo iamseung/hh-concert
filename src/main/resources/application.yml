@@ -46,6 +46,28 @@ springdoc:
   # docs/openapi.yml을 직접 수정하여 사용하는 것을 권장
   override-with-generic-response: false
 
+# Spring Boot Actuator & Prometheus Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+
 # External API WebClient Configuration
 external-api:
   timeout-seconds: 3

@@ -53,6 +53,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.retry:spring-retry")
 
+    // Monitoring - Prometheus
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
     // Resilience4j
     implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
     implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
