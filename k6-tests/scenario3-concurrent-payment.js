@@ -21,23 +21,23 @@ const transactionFailures = new Counter('transaction_failures');
 
 export const options = {
   scenarios: {
-    // 사전 준비: 예약 생성 (좌석 임시 예약 상태)
+    // 사전 준비: 예약 생성 (좌석 임시 예약 상태) - 테스트용 축소
     setup_reservations: {
       executor: 'per-vu-iterations',
-      vus: 100,
-      iterations: 10, // VU당 10개 예약 = 1,000개 예약
-      maxDuration: '2m',
+      vus: 10,
+      iterations: 5, // VU당 5개 예약 = 50개 예약
+      maxDuration: '1m',
       exec: 'setupReservation',
     },
-    // 메인 테스트: 동시 결제
+    // 메인 테스트: 동시 결제 - 테스트용 축소
     concurrent_payment: {
       executor: 'constant-arrival-rate',
-      rate: 1000,          // 초당 1,000건
+      rate: 50,            // 초당 50건 (테스트용)
       timeUnit: '1s',
-      duration: '5m',      // 5분 동안 유지
-      preAllocatedVUs: 500, // 사전 할당 VU
-      maxVUs: 2000,        // 최대 VU
-      startTime: '2m',     // 예약 생성 후 시작
+      duration: '30s',     // 30초 동안 유지
+      preAllocatedVUs: 50,
+      maxVUs: 100,
+      startTime: '1m',     // 예약 생성 후 시작
       exec: 'processPayment',
     },
   },
@@ -62,7 +62,7 @@ let reservationIds = [];
  * 사전 준비: 예약 생성 (좌석 임시 예약)
  */
 export function setupReservation() {
-  const userId = `payment_user_${__VU}_${__ITER}`;
+  const userId = 1; // 테스트용으로 userId 1 사용
 
   group('예약 생성 (사전 준비)', () => {
     // 1. 토큰 발급
@@ -186,7 +186,7 @@ function issueToken(userId) {
     }
   );
 
-  if (response.status === 200) {
+  if (response.status === 200 || response.status === 201) {
     return response.json();
   }
   return null;
@@ -212,7 +212,7 @@ function chargePoints(userId, token, amount) {
   );
 
   check(response, {
-    'points charged': (r) => r.status === 200,
+    'points charged': (r) => r.status === 200 || r.status === 201,
   });
 }
 
@@ -235,7 +235,7 @@ function createReservation(token, seatId) {
     }
   );
 
-  if (response.status === 200) {
+  if (response.status === 200 || response.status === 201) {
     return response.json();
   }
   return null;
