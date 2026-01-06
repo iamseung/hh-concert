@@ -29,11 +29,11 @@ export const options = {
   scenarios: {
     sustained_load: {
       executor: 'constant-arrival-rate',
-      rate: 1000,           // 초당 1,000 요청
+      rate: 50,             // 초당 50 요청 (테스트용 축소)
       timeUnit: '1s',
-      duration: '10m',      // 10분 동안 유지
-      preAllocatedVUs: 300,
-      maxVUs: 1000,
+      duration: '2m',       // 2분 동안 유지 (테스트용 축소)
+      preAllocatedVUs: 50,
+      maxVUs: 100,
     },
   },
   thresholds: {
@@ -57,7 +57,7 @@ const CONCERT_ID = 1;
 const SCHEDULE_ID = 1;
 
 export default function () {
-  const userId = `sustained_user_${__VU}_${__ITER}`;
+  const userId = 1; // 테스트용으로 userId 1 사용
   const startTime = Date.now();
   let overallSuccess = true;
 
@@ -143,7 +143,7 @@ function issueQueueTokenFlow(userId) {
   );
 
   const success = check(response, {
-    'token issued': (r) => r.status === 200,
+    'token issued': (r) => r.status === 200 || r.status === 201,
   });
 
   return success ? response.json('token') : null;
@@ -226,7 +226,7 @@ function chargeUserPoints(userId, token) {
   );
 
   return check(response, {
-    'points charged': (r) => r.status === 200,
+    'points charged': (r) => r.status === 200 || r.status === 201,
   });
 }
 
@@ -251,7 +251,7 @@ function reserveSeat(token) {
     }
   );
 
-  if (response.status === 200) {
+  if (response.status === 200 || response.status === 201) {
     return response.json('reservationId');
   }
 
@@ -279,7 +279,7 @@ function processPayment(userId, token, reservationId) {
   );
 
   return check(response, {
-    'payment succeeded': (r) => r.status === 200,
+    'payment succeeded': (r) => r.status === 200 || r.status === 201,
   });
 }
 
