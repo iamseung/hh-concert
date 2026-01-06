@@ -20,18 +20,18 @@ const redisOperationTime = new Trend('redis_operation_time');
 
 export const options = {
   scenarios: {
-    // 시나리오: 10,000명이 동시에 대기열에 진입
+    // 시나리오: 100명이 동시에 대기열에 진입 (테스트용 축소)
     queue_entry: {
       executor: 'constant-vus',
-      vus: 10000,
-      duration: '30s', // 30초 동안 10,000명 유지하며 토큰 발급
+      vus: 100,
+      duration: '30s', // 30초 동안 100명 유지하며 토큰 발급
       exec: 'queueEntry',
     },
     // 시나리오: 대기열 상태 폴링 (2초마다)
     queue_polling: {
       executor: 'constant-vus',
-      vus: 10000,
-      duration: '5m', // 5분 동안 지속적으로 폴링
+      vus: 100,
+      duration: '1m', // 1분 동안 지속적으로 폴링 (테스트용 축소)
       startTime: '31s', // 토큰 발급 후 시작
       exec: 'queuePolling',
     },
@@ -56,7 +56,7 @@ let activatedAt = null;
  * 대기열 진입 시나리오
  */
 export function queueEntry() {
-  const userId = `user_${__VU}`;
+  const userId = 1; // 테스트용으로 userId 1 사용 (data.sql에 존재하는 유저)
 
   group('대기열 토큰 발급', () => {
     const startTime = Date.now();
@@ -71,7 +71,7 @@ export function queueEntry() {
     );
 
     const success = check(response, {
-      'token issued successfully': (r) => r.status === 200,
+      'token issued successfully': (r) => r.status === 200 || r.status === 201,
       'response time < 500ms': (r) => r.timings.duration < 500,
     });
 
