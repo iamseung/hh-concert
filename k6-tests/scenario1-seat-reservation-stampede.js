@@ -41,7 +41,7 @@ const SCHEDULE_ID = 1;
 const TOTAL_SEATS = 50; // 경합 대상 좌석 수
 
 export default function () {
-  const userId = 1; // 테스트용으로 userId 1 사용 (data.sql에 존재하는 유저)
+  const userId = __VU; // 각 VU마다 고유한 userId 사용 (1, 2, 3, ...)
 
   group('좌석 예약 집중 부하', () => {
     // 1. 대기열 토큰 발급

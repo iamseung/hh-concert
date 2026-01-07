@@ -57,7 +57,7 @@ const CONCERT_ID = 1;
 const SCHEDULE_ID = 1;
 
 export default function () {
-  const userId = 1; // 테스트용으로 userId 1 사용
+  const userId = __VU; // 각 VU마다 고유한 userId 사용 (1, 2, 3, ...)
   const startTime = Date.now();
   let overallSuccess = true;
 

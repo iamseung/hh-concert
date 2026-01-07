@@ -56,7 +56,7 @@ let activatedAt = null;
  * 대기열 진입 시나리오
  */
 export function queueEntry() {
-  const userId = 1; // 테스트용으로 userId 1 사용 (data.sql에 존재하는 유저)
+  const userId = __VU; // 각 VU마다 고유한 userId 사용 (1, 2, 3, ...)
 
   group('대기열 토큰 발급', () => {
     const startTime = Date.now();

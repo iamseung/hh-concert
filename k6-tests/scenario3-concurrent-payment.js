@@ -62,7 +62,7 @@ let reservationIds = [];
  * 사전 준비: 예약 생성 (좌석 임시 예약)
  */
 export function setupReservation() {
-  const userId = 1; // 테스트용으로 userId 1 사용
+  const userId = __VU; // 각 VU마다 고유한 userId 사용 (1, 2, 3, ...)
 
   group('예약 생성 (사전 준비)', () => {
     // 1. 토큰 발급
