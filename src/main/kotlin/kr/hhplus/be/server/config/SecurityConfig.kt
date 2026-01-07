@@ -36,9 +36,12 @@ class SecurityConfig(
                     .requestMatchers(
                         "/api/v1/users/*",
                         "/api/v1/concerts/**",
+                        "/api/v1/queue/**",
+                        "/api/v1/points/**",
+                        "/api/payments",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/actuator/health",
+                        "/actuator/**",
                     ).permitAll()
                     .anyRequest().authenticated()
             }
