@@ -55,7 +55,7 @@ class RedisQueueRepository(
     /**
      * 대기열에서 사용자의 순위 조회 (0부터 시작)
      */
-    fun getPosition(userId: Long): Long? {
+    override fun getPosition(userId: Long): Long? {
         val rank = stringRedisTemplate.opsForZSet().rank(WAITING_QUEUE_KEY, userId.toString())
         return rank?.plus(1) // 1부터 시작하도록 변환
     }
@@ -77,7 +77,7 @@ class RedisQueueRepository(
     /**
      * 대기열에서 상위 N명을 ACTIVE로 이동 (Lua 스크립트로 원자화)
      */
-    fun activateWaitingUsers(count: Int): List<Long> {
+    override fun activateWaitingUsers(count: Int): List<Long> {
         val now = LocalDateTime.now()
         val expiryTime = now.plusMinutes(10)
         val expiryScore = expiryTime.toInstant(ZoneOffset.UTC).toEpochMilli()
@@ -105,7 +105,7 @@ class RedisQueueRepository(
     /**
      * 만료된 ACTIVE 토큰 제거 (Lua 스크립트로 원자화)
      */
-    fun removeExpiredActiveTokens(): List<Long> {
+    override fun removeExpiredActiveTokens(): List<Long> {
         val now = System.currentTimeMillis()
 
         // Lua 스크립트 실행
@@ -145,7 +145,7 @@ class RedisQueueRepository(
      * ACTIVE에서 사용자 제거 (토큰 만료 처리)
      * 토큰 엔티티는 삭제하지 않고 ACTIVE queue에서만 제거
      */
-    fun removeFromActiveQueue(userId: Long) {
+    override fun removeFromActiveQueue(userId: Long) {
         stringRedisTemplate.opsForZSet().remove(ACTIVE_QUEUE_KEY, userId.toString())
         // 토큰 엔티티는 유지 (EXPIRED 상태로 조회 가능해야 함)
     }
@@ -153,7 +153,7 @@ class RedisQueueRepository(
     /**
      * Token → UserId 매핑 삭제 (메모리 누수 방지)
      */
-    fun removeTokenMapping(token: String) {
+    override fun removeTokenMapping(token: String) {
         redisTemplate.delete("$TOKEN_TO_USERID_KEY$token")
     }
 
@@ -169,7 +169,7 @@ class RedisQueueRepository(
      * 원자적 토큰 생성 (중복 토큰 방지)
      * 이미 존재하면 기존 토큰 반환, 없으면 새로 생성
      */
-    fun findOrCreateTokenAtomic(userId: Long): QueueTokenModel {
+    override fun findOrCreateTokenAtomic(userId: Long): QueueTokenModel {
         // 1. 기존 토큰 확인 (ACTIVE 또는 WAITING)
         val existingToken = getTokenEntity(userId)
         if (existingToken != null) {

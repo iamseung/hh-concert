@@ -12,4 +12,11 @@ interface QueueTokenRepository {
     fun findAllByStatus(status: QueueStatus): List<QueueTokenModel>
     fun countByStatus(status: QueueStatus): Long
     fun findExpiredTokens(): List<QueueTokenModel>
+
+    fun findOrCreateTokenAtomic(userId: Long): QueueTokenModel
+    fun getPosition(userId: Long): Long?
+    fun activateWaitingUsers(count: Int): List<Long>
+    fun removeExpiredActiveTokens(): List<Long>
+    fun removeFromActiveQueue(userId: Long)
+    fun removeTokenMapping(token: String)
 }
