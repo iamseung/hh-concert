@@ -63,24 +63,25 @@ class ProcessPaymentUseCase(
         // 1. 사용자 검증
         val user = userService.findById(command.userId)
 
-        // 2. 예약 사전 검증
+        // 2. 예약 사전 검증 (소유권 확인)
         val reservationPreCheck = reservationService.findById(command.reservationId)
         reservationPreCheck.validate(user.id)
 
-        // 3. 좌석 조회
-        val seat = seatService.findById(reservationPreCheck.seatId)
-
-        // 4. 분산락으로 보호되는 결제 처리
-        val payment = distributeLockExecutor.execute(
+        // 3. 분산락으로 보호되는 결제 처리
+        // seat는 트랜잭션 내부에서 재조회한다 (TOCTOU 방지: 락 대기 중 좌석 상태/가격이 변경될 수 있음)
+        val (payment, concertScheduleId) = distributeLockExecutor.execute(
             lockKey = "reservation:payment:lock:${command.reservationId}",
             waitMilliSeconds = 3000,
             leaseMilliSeconds = 5000,
         ) {
-            // 5. 트랜잭션 내부에서 결제 처리를 원자적으로 실행
+            // 4. 트랜잭션 내부에서 결제 처리를 원자적으로 실행
             transactionExecutor.execute {
                 // 예약 재검증 (TOCTOU 방지: 락 대기 중 예약 상태가 변경되었을 수 있음)
                 val reservation = reservationService.findById(command.reservationId)
                 reservation.validate(user.id)
+
+                // 좌석 재조회 (TOCTOU 방지: 락 대기 중 좌석 상태/가격이 변경되었을 수 있음)
+                val seat = seatService.findById(reservation.seatId)
 
                 // 포인트 차감 및 히스토리 기록
                 pointService.usePoint(user.id, seat.price)
@@ -103,16 +104,16 @@ class ProcessPaymentUseCase(
                 val token = queueTokenService.getQueueTokenByToken(command.queueToken)
                 queueTokenService.expireQueueToken(token)
 
-                paymentModel
+                Pair(paymentModel, seat.concertScheduleId)
             }
         }
 
         // 5. 좌석 캐시 무효화 (트랜잭션 커밋 후)
         // 좌석 상태가 TEMPORARY_RESERVED → RESERVED로 변경되었으므로 캐시 삭제
-        seatCacheService.evictAvailableSeats(seat.concertScheduleId)
+        seatCacheService.evictAvailableSeats(concertScheduleId)
 
         // 6. 랭킹 업데이트 이벤트 발행 (트랜잭션 커밋 후 비동기 처리)
-        val schedule = concertScheduleService.findById(seat.concertScheduleId)
+        val schedule = concertScheduleService.findById(concertScheduleId)
         val concert = concertService.findById(schedule.concertId)
         eventPublisher.publishEvent(
             ReservationConfirmedEvent(
